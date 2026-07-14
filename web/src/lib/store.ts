@@ -5,9 +5,17 @@ import { persist } from "zustand/middleware";
 import type { CartItem } from "./types";
 import { getProduct } from "./data";
 
+/** The details snapshotted into the cart when a product is added. */
+export interface CartAddInput {
+  slug: string;
+  name: string;
+  price: number;
+  image?: string;
+}
+
 interface CartState {
   items: CartItem[];
-  add: (slug: string, qty?: number) => void;
+  add: (product: CartAddInput, qty?: number) => void;
   remove: (slug: string) => void;
   setQty: (slug: string, qty: number) => void;
   clear: () => void;
@@ -17,17 +25,30 @@ export const useCart = create<CartState>()(
   persist(
     (set) => ({
       items: [],
-      add: (slug, qty = 1) =>
+      add: (product, qty = 1) =>
         set((s) => {
-          const existing = s.items.find((i) => i.slug === slug);
+          const existing = s.items.find((i) => i.slug === product.slug);
           if (existing) {
             return {
               items: s.items.map((i) =>
-                i.slug === slug ? { ...i, qty: Math.min(i.qty + qty, 9) } : i,
+                i.slug === product.slug
+                  ? { ...i, qty: Math.min(i.qty + qty, 9) }
+                  : i,
               ),
             };
           }
-          return { items: [...s.items, { slug, qty }] };
+          return {
+            items: [
+              ...s.items,
+              {
+                slug: product.slug,
+                qty,
+                name: product.name,
+                price: product.price,
+                image: product.image,
+              },
+            ],
+          };
         }),
       remove: (slug) =>
         set((s) => ({ items: s.items.filter((i) => i.slug !== slug) })),
@@ -50,7 +71,11 @@ export const cartCount = (items: CartItem[]) =>
   items.reduce((n, i) => n + i.qty, 0);
 
 export const cartSubtotal = (items: CartItem[]) =>
-  items.reduce((sum, i) => sum + (getProduct(i.slug)?.price ?? 0) * i.qty, 0);
+  items.reduce(
+    // Prefer the snapshotted price; fall back to seed data for older carts.
+    (sum, i) => sum + (i.price ?? getProduct(i.slug)?.price ?? 0) * i.qty,
+    0,
+  );
 
 interface WishlistState {
   slugs: string[];

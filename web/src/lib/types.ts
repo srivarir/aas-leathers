@@ -40,4 +40,10 @@ export interface JournalPost {
 export interface CartItem {
   slug: string;
   qty: number;
+  // Snapshot taken when added, so the cart shows correct details for any
+  // product — including ones added after the site was built. Optional for
+  // backward compatibility with carts saved before this field existed.
+  name?: string;
+  price?: number;
+  image?: string;
 }

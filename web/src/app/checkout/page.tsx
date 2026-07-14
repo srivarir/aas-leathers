@@ -402,18 +402,22 @@ export default function CheckoutPage() {
             <ul className="mt-6 divide-y divide-line">
               {items.map((item) => {
                 const product = getProduct(item.slug);
-                if (!product) return null;
+                const name = item.name ?? product?.name ?? "Item";
+                const price = item.price ?? product?.price ?? 0;
+                const image = item.image ?? product?.images[0];
                 return (
                   <li key={item.slug} className="flex items-center gap-4 py-4">
                     <span className="relative block h-16 w-14 shrink-0 overflow-hidden bg-bone-soft">
-                      <Image src={product.images[0]} alt="" fill sizes="56px" className="object-cover" />
+                      {image && (
+                        <Image src={image} alt="" fill sizes="56px" className="object-cover" />
+                      )}
                     </span>
                     <span className="flex-1">
-                      <span className="font-display block leading-tight">{product.name}</span>
+                      <span className="font-display block leading-tight">{name}</span>
                       <span className="text-xs text-muted">Qty {item.qty}</span>
                     </span>
                     <span className="text-sm tabular-nums">
-                      {formatINR(product.price * item.qty)}
+                      {formatINR(price * item.qty)}
                     </span>
                   </li>
                 );

@@ -65,40 +65,49 @@ export function CartDrawer() {
               <>
                 <ul className="flex-1 divide-y divide-line overflow-y-auto px-7">
                   {items.map((item) => {
+                    // Use the snapshot taken at add-time; fall back to seed
+                    // data so older carts still render.
                     const product = getProduct(item.slug);
-                    if (!product) return null;
+                    const name = item.name ?? product?.name ?? "Item";
+                    const price = item.price ?? product?.price ?? 0;
+                    const image = item.image ?? product?.images[0];
+                    const subtitle = product?.leather?.split(",")[0];
                     return (
                       <li key={item.slug} className="flex gap-5 py-6">
                         <Link
-                          href={`/products/${product.slug}`}
+                          href={`/products/${item.slug}`}
                           onClick={() => setCartOpen(false)}
                           className="relative block h-28 w-24 shrink-0 overflow-hidden bg-bone-soft"
                         >
-                          <Image
-                            src={product.images[0]}
-                            alt={product.name}
-                            fill
-                            sizes="96px"
-                            className="object-cover"
-                          />
+                          {image && (
+                            <Image
+                              src={image}
+                              alt={name}
+                              fill
+                              sizes="96px"
+                              className="object-cover"
+                            />
+                          )}
                         </Link>
                         <div className="flex flex-1 flex-col">
                           <div className="flex items-start justify-between gap-3">
                             <Link
-                              href={`/products/${product.slug}`}
+                              href={`/products/${item.slug}`}
                               onClick={() => setCartOpen(false)}
                               className="font-display text-lg leading-tight"
                             >
-                              {product.name}
+                              {name}
                             </Link>
-                            <p className="text-sm">{formatINR(product.price)}</p>
+                            <p className="text-sm">{formatINR(price)}</p>
                           </div>
-                          <p className="mt-1 text-xs text-muted">{product.leather.split(",")[0]}</p>
+                          {subtitle && (
+                            <p className="mt-1 text-xs text-muted">{subtitle}</p>
+                          )}
                           <div className="mt-auto flex items-center justify-between">
                             <div className="flex items-center border border-line">
                               <button
                                 className="cursor-pointer p-2 transition-opacity hover:opacity-60"
-                                aria-label={`Decrease quantity of ${product.name}`}
+                                aria-label={`Decrease quantity of ${name}`}
                                 onClick={() => setQty(item.slug, item.qty - 1)}
                               >
                                 <MinusIcon width={14} height={14} />
@@ -106,7 +115,7 @@ export function CartDrawer() {
                               <span className="w-8 text-center text-sm tabular-nums">{item.qty}</span>
                               <button
                                 className="cursor-pointer p-2 transition-opacity hover:opacity-60"
-                                aria-label={`Increase quantity of ${product.name}`}
+                                aria-label={`Increase quantity of ${name}`}
                                 onClick={() => setQty(item.slug, item.qty + 1)}
                               >
                                 <PlusIcon width={14} height={14} />

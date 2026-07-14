@@ -45,7 +45,9 @@ async function issueVerification(user) {
     },
   );
   const url = `${env.clientUrl}/verify-email?token=${rawToken}`;
-  await sendVerificationEmail(user, url);
+  // Fire-and-forget — a slow or blocked SMTP must never hang the HTTP
+  // response (register / resend). The email either arrives or is logged.
+  sendVerificationEmail(user, url).catch(() => {});
   return url;
 }
 

@@ -14,6 +14,11 @@ function buildTransport() {
       port,
       secure: port === 465, // SSL on 465; STARTTLS on 587/others
       auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+      // Fail fast if the SMTP port is blocked (common on PaaS free tiers)
+      // instead of hanging the request that triggered the email.
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 20000,
     });
   }
   if (process.env.SMTP_URL) {
@@ -23,12 +28,53 @@ function buildTransport() {
 }
 
 const transport = buildTransport();
-const SENDING_REAL_MAIL = Boolean(process.env.SMTP_HOST || process.env.SMTP_URL);
 const FROM =
   process.env.MAIL_FROM ??
   process.env.SMTP_USER ??
   "AAS Leathers <workshop@aasleathers.in>";
+const USE_BREVO = Boolean(process.env.BREVO_API_KEY);
+const SENDING_REAL_MAIL =
+  USE_BREVO || Boolean(process.env.SMTP_HOST || process.env.SMTP_URL);
 const DEV = !SENDING_REAL_MAIL;
+
+/** Splits "Name <email@x.com>" into { name, email }. */
+function parseSender(from) {
+  const m = String(from).match(/^\s*(.*?)\s*<([^>]+)>\s*$/);
+  return m
+    ? { name: m[1] || "AAS Leathers", email: m[2] }
+    : { name: "AAS Leathers", email: String(from).trim() };
+}
+
+/**
+ * Sends one email. Prefers Brevo's HTTPS API when configured — it works on
+ * hosts that block outbound SMTP ports (e.g. Render's free tier), where Gmail
+ * SMTP simply times out. Otherwise falls back to the SMTP transport (great
+ * locally or on hosts that allow SMTP), or the dev JSON transport.
+ */
+async function deliver({ to, subject, html }) {
+  if (USE_BREVO) {
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "api-key": process.env.BREVO_API_KEY,
+        "content-type": "application/json",
+        accept: "application/json",
+      },
+      body: JSON.stringify({
+        sender: parseSender(FROM),
+        to: [{ email: to }],
+        subject,
+        htmlContent: html,
+      }),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`Brevo ${res.status}: ${text.slice(0, 200)}`);
+    }
+    return;
+  }
+  await transport.sendMail({ from: FROM, to, subject, html });
+}
 
 /**
  * Sends the email-verification link. In development (no SMTP configured) the
@@ -55,8 +101,7 @@ export async function sendVerificationEmail(user, verifyUrl) {
   </div>`;
 
   try {
-    await transport.sendMail({
-      from: FROM,
+    await deliver({
       to: user.email,
       subject: "Confirm your email — AAS Leathers",
       html,
@@ -109,19 +154,16 @@ export async function sendOrderConfirmation(order) {
   </div>`;
 
   try {
-    const info = await transport.sendMail({
-      from: FROM,
+    await deliver({
       to: order.email,
       subject: `Order ${order.number} — the bench has it`,
       html,
     });
-    if (!process.env.SMTP_URL) {
+    if (DEV) {
       console.log(`[mail] (dev) order confirmation for ${order.number} → ${order.email}`);
     }
-    return info;
   } catch (err) {
     // Email must never break checkout — log and move on.
     console.error("[mail] failed to send order confirmation:", err.message);
-    return null;
   }
 }

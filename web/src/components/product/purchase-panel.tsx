@@ -27,7 +27,15 @@ export function PurchasePanel({ product }: { product: Product }) {
   }, [product.slug]);
 
   const handleAdd = () => {
-    add(product.slug, qty);
+    add(
+      {
+        slug: product.slug,
+        name: product.name,
+        price: product.price,
+        image: product.images[0],
+      },
+      qty,
+    );
     setAdded(true);
     setTimeout(() => {
       setAdded(false);
