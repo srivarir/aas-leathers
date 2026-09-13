@@ -4,16 +4,21 @@ import { useEffect, useState } from "react";
 import { ProductCard } from "@/components/product-card";
 import { Reveal } from "@/components/motion";
 import { ButtonLink } from "@/components/ui/button";
-import { getProduct } from "@/lib/data";
 import { useWishlist } from "@/lib/store";
+import { useCatalog } from "@/lib/use-catalog";
 
 export default function WishlistPage() {
   const slugs = useWishlist((s) => s.slugs);
+  const catalog = useCatalog();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
+  // Resolve against the live catalogue so pieces added in the admin appear
+  // here too — not just the ones baked in at build time.
   const list = mounted
-    ? slugs.map(getProduct).filter((p) => p !== undefined)
+    ? slugs
+        .map((slug) => catalog.find((p) => p.slug === slug))
+        .filter((p) => p !== undefined)
     : [];
 
   return (

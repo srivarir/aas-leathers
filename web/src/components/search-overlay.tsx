@@ -6,14 +6,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { EASE } from "@/components/motion";
 import { CloseIcon, SearchIcon } from "@/components/icons";
-import { categoryLabels, products } from "@/lib/data";
+import { categoryLabels } from "@/lib/data";
 import { formatINR } from "@/lib/format";
 import { useUI } from "@/lib/store";
+import { useCatalog } from "@/lib/use-catalog";
 
 const popular = ["Tote", "Briefcase", "Wallet", "Weekender"];
 
 export function SearchOverlay() {
   const { searchOpen, setSearchOpen } = useUI();
+  const catalog = useCatalog();
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -34,19 +36,19 @@ export function SearchOverlay() {
     return () => window.removeEventListener("keydown", onKey);
   }, [setSearchOpen]);
 
+  // Searches the live catalogue, so pieces added in the admin are findable.
+  // Fields are guarded because an admin-created product may leave the
+  // optional ones (tagline, leather) empty.
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return [];
-    return products
-      .filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.tagline.toLowerCase().includes(q) ||
-          p.category.includes(q) ||
-          p.leather.toLowerCase().includes(q),
+    return catalog
+      .filter((p) =>
+        [p.name, p.tagline, p.category, p.leather]
+          .some((field) => (field ?? "").toLowerCase().includes(q)),
       )
       .slice(0, 6);
-  }, [query]);
+  }, [query, catalog]);
 
   return (
     <AnimatePresence>
