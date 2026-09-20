@@ -1,220 +1,142 @@
-# Deploying AAS Leathers
+# Deploying AAS Leathers on Hostinger
 
-This guide takes the store from your laptop to the internet — **twice**:
+Both apps run on your existing Hostinger plan — the storefront as a **Web App**
+(Next.js is explicitly supported) and the API as a **Node.js app**. Only the
+database lives elsewhere, on MongoDB Atlas's free tier.
 
-- **Scenario A — no domain (client showcase):** live on free URLs like
-  `aas-leathers.vercel.app`. ~30 minutes, ₹0.
-- **Scenario B — your real domain:** the same deployment, re-pointed at
-  `aasleathers.in` (or whatever you buy). ~15 more minutes, later.
-
-The clever part: **you don't redeploy for Scenario B.** You deploy once on free
-URLs, show your client, and when the domain is ready you just attach it and
-update a couple of settings.
-
----
-
-## How the app is shaped
-
-Three independent pieces, each hosted on a service that suits it best:
-
-| Piece | Folder | Hosted on | Free? |
+| Piece | Folder | Where it goes | Cost |
 |---|---|---|---|
-| Storefront + admin (Next.js) | `web/` | **Vercel** | Yes |
-| API (Express) | `server/` | **Render** | Yes |
-| Database (MongoDB) | — | **MongoDB Atlas** | Yes (M0) |
+| Storefront (Next.js) | `web/` | Hostinger **Web App** → `yourdomain.com` | included |
+| API (Express) | `server/` | Hostinger **Node.js app** → `api.yourdomain.com` | included |
+| Database (MongoDB) | — | **MongoDB Atlas** free (M0) | ₹0 |
 
-All three have generous free tiers and give you a public HTTPS URL with no
-domain required. Everything auto-redeploys when you push to GitHub.
+## Why this is better than the Vercel + Render setup
 
-> **Why not Hostinger?** Your Business plan *can* run Node apps, but a Next.js
-> server app is finicky there. Vercel is purpose-built for Next.js and free, and
-> Render runs the API with one click. When you buy a domain (likely via
-> Hostinger), you just point its DNS at Vercel/Render — covered in Scenario B.
+- **Nothing sleeps.** No 30–50s cold start for your client's visitors.
+- **Email just works.** Hostinger allows SMTP, so Gmail/Hostinger mail sends
+  normally — no Brevo workaround needed.
+- **Uploaded product photos persist.** Hostinger has a real disk, unlike
+  Render's free tier which wipes uploads on every redeploy. This removes the
+  urgency of moving images to Cloudinary.
+- **Commercially clean.** No non-commercial licensing question.
+- **₹0 extra** — you already pay for the plan.
 
 ---
 
-# Part 0 — One-time setup (do this once)
+## Part 0 — Database (MongoDB Atlas, free)
 
-### 0.1 Put the code on GitHub
+Hostinger doesn't offer MongoDB, so the database stays in the cloud.
 
-The project is already a git repo with an initial commit. Create an empty repo
-on GitHub (e.g. `aas-leathers`), then from the project folder:
-
-```bash
-cd "C:\Sham\Project\AAS leathers"
-git remote add origin https://github.com/YOUR_USERNAME/aas-leathers.git
-git branch -M main
-git push -u origin main
-```
-
-> Your `.env` files are git-ignored, so **no secrets are uploaded** — you set
-> those directly on Render/Vercel instead.
-
-### 0.2 Create the database (MongoDB Atlas)
-
-1. Sign up at <https://www.mongodb.com/cloud/atlas> and create a **free M0
-   cluster** (choose the **Mumbai** region).
-2. **Database Access** → add a database user (username + a strong password).
-3. **Network Access** → **Allow access from anywhere** (`0.0.0.0/0`) — cloud
-   hosts don't have a fixed IP.
-4. **Connect → Drivers** → copy the connection string and drop your password in.
-   It looks like:
+1. Sign up at <https://www.mongodb.com/cloud/atlas>, create a **free M0
+   cluster** (Mumbai region).
+2. **Database Access** → add a user (note the password).
+3. **Network Access** → **Allow access from anywhere** (`0.0.0.0/0`).
+4. **Connect → Drivers** → copy the connection string, insert your password:
 
    ```
    mongodb+srv://USER:PASSWORD@cluster0.xxxxx.mongodb.net/aas-leathers
    ```
 
-   Keep this — it's your `MONGODB_URI`.
+   That is your `MONGODB_URI`.
 
 ---
 
-# Scenario A — Go live without a domain
+## Part 1 — The API (Express) on a subdomain
 
-### A.1 Deploy the API on Render
+1. hPanel → **Domains → Subdomains** → create `api.yourdomain.com`.
+2. hPanel → **Website → Node.js** → create an application on that subdomain:
+   - **Startup file:** `src/server.js`
+   - **Node version:** 20 or newer
+   - **Application root:** where you put the `server/` folder
+3. Get the code there — either connect the GitHub repo (preferred, so updates
+   are a pull) or upload the `server/` folder via File Manager. **Do not
+   upload `node_modules` or `.env`.**
+4. Add the **environment variables** (see the reference table below).
+5. Run **npm install**, then **Start**.
+6. Check `https://api.yourdomain.com/api/health` → `{"ok":true,...}`.
+   The catalogue and admin account seed themselves on first boot.
 
-1. Sign in at <https://render.com> with GitHub.
-2. **New → Web Service** → pick your `aas-leathers` repo.
-3. Settings:
-   - **Root Directory:** `server`
-   - **Build Command:** `npm install`
-   - **Start Command:** `npm start`
-   - **Instance Type:** Free
-4. Add **Environment Variables** (Advanced → Add):
+---
 
-   | Key | Value |
-   |---|---|
-   | `NODE_ENV` | `production` |
-   | `MONGODB_URI` | your Atlas string from 0.2 |
-   | `JWT_ACCESS_SECRET` | a long random string¹ |
-   | `JWT_REFRESH_SECRET` | a **different** long random string¹ |
-   | `CLIENT_URL` | `https://TEMP` (fixed in A.3) |
-   | `ADMIN_EMAIL` | your admin login email |
-   | `ADMIN_PASSWORD` | a strong admin password |
-   | `SMTP_HOST` | `smtp.gmail.com` |
-   | `SMTP_PORT` | `465` |
-   | `SMTP_USER` | your Gmail address |
-   | `SMTP_PASS` | your Gmail App Password |
-   | `MAIL_FROM` | `AAS Leathers <your@gmail.com>` |
-   | `RAZORPAY_KEY_ID` | your `rzp_test_…` key |
-   | `RAZORPAY_KEY_SECRET` | your Razorpay test secret |
+## Part 2 — The storefront (Next.js) as a Web App
 
-   ¹ Generate each with: `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`
+1. hPanel → **Web Apps** → create an app on `yourdomain.com`, pointing at the
+   `web/` folder (or the GitHub repo with `web` as the root directory).
+2. It must run in **server mode** — build `npm run build`, start `npm start`.
+   This is required: it is what gives products added in the admin their own
+   working pages.
+3. Set one environment variable:
 
-5. **Create Web Service.** When it finishes, note the URL, e.g.
-   `https://aas-leathers-api.onrender.com`.
-6. Check `https://aas-leathers-api.onrender.com/api/health` → `{"ok":true,…}`.
-   (The catalogue and admin account seed themselves on first boot.)
+   ```
+   NEXT_PUBLIC_API_URL = https://api.yourdomain.com/api
+   ```
 
-### A.2 Deploy the storefront on Vercel
+4. Deploy, then open `https://yourdomain.com`.
 
-1. Sign in at <https://vercel.com> with GitHub → **Add New → Project** → import
-   `aas-leathers`.
-2. Settings:
-   - **Root Directory:** `web`
-   - **Framework Preset:** Next.js (auto-detected)
-3. Add an **Environment Variable**:
+> If the Web App only produces a **static** build rather than running the Next.js
+> server, stop and tell me — the site needs server mode, and we would fold the
+> API into the Next.js app instead.
 
-   | Key | Value |
-   |---|---|
-   | `NEXT_PUBLIC_API_URL` | `https://aas-leathers-api.onrender.com/api` |
+---
 
-   (Use *your* Render URL from A.1, with `/api` on the end.)
-4. **Deploy.** You'll get a URL like `https://aas-leathers.vercel.app`.
+## Part 3 — Introduce them
 
-### A.3 Introduce them to each other
+On the **API**, set `CLIENT_URL = https://yourdomain.com` and restart. This is
+what lets the browser call the API (CORS) and keeps logins working.
 
-The API must trust the storefront's origin (for CORS + the login cookie):
+---
 
-1. Back on **Render → your API → Environment**, set
-   `CLIENT_URL = https://aas-leathers.vercel.app` (your real Vercel URL).
-2. Save — Render redeploys automatically.
+## Part 4 — Smoke test
 
-### A.4 Smoke test the live site
-
-Open your Vercel URL and check:
-
-- Home, shop, and a product page load with images.
-- Register an account → the verification email arrives (real, via Gmail).
+- Home, shop and a product page load with images.
+- Register → the verification email arrives (real email).
 - Add to cart → checkout → pay with test card `4111 1111 1111 1111` (any
-  future expiry/CVV) → order confirms and shows in your account.
-- Sign in to `/admin` with your `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
-
-That's it — send the Vercel link to your client.
-
----
-
-# Scenario B — Attach your real domain
-
-When you've bought the domain (e.g. from Hostinger), no redeploy is needed —
-just point DNS and update two settings.
-
-### B.1 Point the storefront domain at Vercel
-
-1. **Vercel → your project → Settings → Domains** → add `yourdomain.com` and
-   `www.yourdomain.com`.
-2. Vercel shows the DNS records to add. In **Hostinger → DNS Zone Editor** for
-   your domain, add them (usually an `A` record for the apex and a `CNAME` for
-   `www` pointing to Vercel).
-
-### B.2 Point the API subdomain at Render
-
-1. **Render → your API → Settings → Custom Domains** → add
-   `api.yourdomain.com`.
-2. In **Hostinger DNS**, add the `CNAME` Render gives you for `api`.
-
-### B.3 Update the environment to the new addresses
-
-| Where | Key | New value |
-|---|---|---|
-| Render | `CLIENT_URL` | `https://yourdomain.com` |
-| Vercel | `NEXT_PUBLIC_API_URL` | `https://api.yourdomain.com/api` |
-
-Save on Render (auto-redeploys). On Vercel, **redeploy** so the new API URL is
-baked into the build (Deployments → ⋯ → Redeploy).
-
-### B.4 Update Razorpay
-
-When you're ready for **real** payments, switch the Razorpay dashboard to Live
-mode, complete KYC, generate **Live** keys, and replace `RAZORPAY_KEY_ID` /
-`RAZORPAY_KEY_SECRET` on Render. Keep test keys until then.
-
-Optionally add a webhook: Razorpay Dashboard → Webhooks →
-`https://api.yourdomain.com/api/payments/razorpay/webhook`, set a secret, and
-add it as `RAZORPAY_WEBHOOK_SECRET` on Render.
+  future expiry/CVV) → order confirms and appears in your account.
+- Sign in at `/admin` with your `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
+- Add a product in the admin → it appears in shop, search, and prices
+  correctly at checkout.
 
 ---
 
-# Environment variables — full reference
+## Environment variables
 
-| Key | Needed | Notes |
-|---|---|---|
-| `NODE_ENV` | prod | `production` |
-| `MONGODB_URI` | prod | Atlas connection string |
-| `CLIENT_URL` | yes | Storefront origin (CORS + cookie) |
-| `JWT_ACCESS_SECRET` | yes | Long random; must differ from refresh |
-| `JWT_REFRESH_SECRET` | yes | Long random |
-| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | prod | Creates the first admin on boot |
-| `SMTP_HOST/PORT/USER/PASS` | for email | Gmail or any SMTP |
-| `MAIL_FROM` | for email | Sender shown to customers |
-| `RAZORPAY_KEY_ID` / `_SECRET` | for payments | Test now, Live later |
-| `RAZORPAY_WEBHOOK_SECRET` | optional | Enables the webhook |
-| `NEXT_PUBLIC_API_URL` | Vercel | API base URL, ending in `/api` |
+Set these on the **API** (Node.js app):
+
+| Key | Value |
+|---|---|
+| `NODE_ENV` | `production` |
+| `MONGODB_URI` | your Atlas string |
+| `CLIENT_URL` | `https://yourdomain.com` |
+| `JWT_ACCESS_SECRET` | long random string¹ |
+| `JWT_REFRESH_SECRET` | a **different** long random string¹ |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | your first admin login |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` | your mailbox |
+| `MAIL_FROM` | `AAS Leathers <orders@yourdomain.com>` |
+| `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | test keys now, live later |
+
+¹ Generate with:
+`node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`
+
+On the **storefront** (Web App): `NEXT_PUBLIC_API_URL` only.
+
+> Tip: create a real mailbox (`orders@yourdomain.com`) in hPanel → Emails and
+> use Hostinger's SMTP, so customers stop seeing a personal Gmail address.
 
 ---
 
-# Things to know before real customers
+## Redeploying later
 
-- **Free-tier cold start.** Render's free API sleeps after ~15 min idle; the
-  first request then takes ~30–50s to wake. Fine for a showcase; upgrade
-  Render's instance (or add a keep-alive ping) for production.
-- **Uploaded images are temporary on Render.** Its disk is wiped on each
-  redeploy, so product photos you upload via the admin won't persist. The seed
-  catalogue (hosted Unsplash images) is unaffected. Before launch, move uploads
-  to **Cloudinary** (a small change — ask me when ready).
-- **Redeploys are automatic.** Every `git push` to `main` rebuilds both Vercel
-  and Render.
-- **Fill in the legal placeholders.** The Privacy/Terms/Data pages contain
-  bracketed placeholders (business name, GSTIN, grievance officer) — replace
-  them and have a lawyer review before taking real orders.
-- **Keep secrets in the dashboards, never in git.** `.env` is git-ignored on
-  purpose; production values live only on Render/Vercel.
+- **Code change:** push to GitHub and pull/redeploy the affected app. The
+  storefront must be rebuilt (`npm run build`) for its changes to show.
+- **Careful:** when updating the API, do not delete `server/uploads/` — that is
+  where uploaded product photos live.
+
+---
+
+## Before real customers
+
+- Switch Razorpay to **Live** keys (needs the client's business KYC).
+- Replace the hot-linked Unsplash photos with the client's own product images.
+- Fill the bracketed placeholders in Privacy / Terms / Data & Compliance
+  (legal entity, GSTIN, grievance officer) and have them reviewed.
+- Set up a backup routine for the Atlas database (the free tier has none).
