@@ -73,9 +73,14 @@ Hostinger doesn't offer MongoDB, so the database stays in the cloud.
 
 4. Deploy, then open `https://yourdomain.com`.
 
-> If the Web App only produces a **static** build rather than running the Next.js
-> server, stop and tell me — the site needs server mode, and we would fold the
-> API into the Next.js app instead.
+> **Confirmed supported.** Hostinger documents Next.js as a server-side Node.js
+> framework on Business hosting, running as a **persistent server process**
+> (unlike static React/Vite deployments). That is exactly what this site needs,
+> so no change to the app is required.
+>
+> If the build runs out of memory on the server, build locally instead
+> (`npm run build` in `web/`) and upload the project including the generated
+> `.next` folder, then just run the start command.
 
 ---
 
