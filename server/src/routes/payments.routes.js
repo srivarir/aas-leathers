@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import { ApiError, asyncHandler } from "../utils/api-error.js";
-import { optionalAuth } from "../middleware/auth.js";
+import { requireAuth } from "../middleware/auth.js";
 import { Order } from "../models/order.js";
 import { createOrder, priceCart, toClientOrder } from "../services/order-service.js";
 import {
@@ -36,7 +36,7 @@ router.get("/status", (_req, res) => {
 router.post(
   "/razorpay/order",
   payLimiter,
-  optionalAuth,
+  requireAuth,
   asyncHandler(async (req, res) => {
     if (!isRazorpayConfigured) {
       throw new ApiError(503, "Online payments aren't configured.");
@@ -57,7 +57,7 @@ router.post(
       amount: Math.round(subtotal * 100), // paise
       currency: "INR",
       receipt: `rcpt_${Date.now()}`,
-      notes: { email: req.user?.email ?? String(req.body?.email ?? "") },
+      notes: { email: req.user.email },
     });
 
     res.status(201).json({
@@ -77,7 +77,7 @@ router.post(
 router.post(
   "/razorpay/verify",
   payLimiter,
-  optionalAuth,
+  requireAuth,
   asyncHandler(async (req, res) => {
     if (!isRazorpayConfigured) {
       throw new ApiError(503, "Online payments aren't configured.");
@@ -88,7 +88,6 @@ router.post(
       razorpay_signature,
       items,
       shippingAddress,
-      email,
     } = req.body ?? {};
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
@@ -112,7 +111,6 @@ router.post(
     try {
       order = await createOrder({
         user: req.user,
-        email,
         items,
         shippingAddress,
         payment: {

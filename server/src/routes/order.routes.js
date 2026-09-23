@@ -1,7 +1,7 @@
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import { ApiError, asyncHandler } from "../utils/api-error.js";
-import { optionalAuth, requireAuth, requireRole } from "../middleware/auth.js";
+import { requireAuth, requireRole } from "../middleware/auth.js";
 import { Order, ORDER_STATUSES } from "../models/order.js";
 import { streamInvoice } from "../services/invoice.js";
 import { createOrder, toClientOrder } from "../services/order-service.js";
@@ -10,7 +10,7 @@ const router = Router();
 
 const STAFF = ["admin", "super-admin", "customer-support"];
 
-const guestOrderLimiter = rateLimit({
+const orderLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 10,
   standardHeaders: "draft-8",
@@ -22,15 +22,18 @@ const guestOrderLimiter = rateLimit({
  * Create an order directly (no online payment) — used when Razorpay isn't
  * configured, so the store still works. Payment is recorded as pending.
  * The real online path is /api/payments/razorpay/verify.
+ *
+ * Sign-in is required: an order placed against a bare email could never be
+ * reunited with the account that email later registered, because claiming a
+ * guest order rightly waits on email verification.
  */
 router.post(
   "/",
-  guestOrderLimiter,
-  optionalAuth,
+  orderLimiter,
+  requireAuth,
   asyncHandler(async (req, res) => {
     const order = await createOrder({
       user: req.user,
-      email: req.body?.email,
       items: req.body?.items,
       shippingAddress: req.body?.shippingAddress,
       payment: { provider: "manual", status: "pending" },

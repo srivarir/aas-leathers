@@ -61,8 +61,12 @@ export async function priceCart(items) {
  * On any unavailable item it rolls back the stock it already reserved and
  * throws — so a partial order is never created.
  */
-export async function createOrder({ user, email, items, shippingAddress, payment }) {
-  const resolvedEmail = user ? user.email : String(email ?? "").toLowerCase().trim();
+export async function createOrder({ user, items, shippingAddress, payment }) {
+  // Every order belongs to an account. Orders placed against a bare email
+  // could not be reunited with that account later, so checkout requires a
+  // signed-in customer and the address comes from the session, not the body.
+  if (!user) throw new ApiError(401, "Please sign in to place your order.");
+  const resolvedEmail = String(user.email ?? "").toLowerCase().trim();
   if (!EMAIL_RE.test(resolvedEmail)) {
     throw new ApiError(400, "A valid email is needed to confirm the order.");
   }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { Route } from "next";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Reveal } from "@/components/motion";
 import { Button } from "@/components/ui/button";
@@ -36,9 +36,20 @@ function Field({
   );
 }
 
+/**
+ * Where to go after signing in. Only same-site paths are honoured — a `next`
+ * of `https://…` or `//evil.example` would otherwise turn this form into an
+ * open redirect.
+ */
+function safeNext(raw: string | null): Route {
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/account" as Route;
+  return raw as Route;
+}
+
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const isLogin = mode === "login";
   const router = useRouter();
+  const next = safeNext(useSearchParams().get("next"));
   const { login, register } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -58,7 +69,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
           String(form.get("password")),
         );
       }
-      router.push("/account");
+      router.push(next);
     } catch (err) {
       setError(
         err instanceof Error && err.message !== "Failed to fetch"
@@ -106,7 +117,9 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       <p className="mt-8 text-center text-sm text-muted">
         {isLogin ? "New to the house? " : "Already with us? "}
         <Link
-          href={(isLogin ? "/register" : "/login") as Route}
+          href={
+            `${isLogin ? "/register" : "/login"}?next=${encodeURIComponent(next)}` as Route
+          }
           className="link-underline text-foreground"
         >
           {isLogin ? "Create an account" : "Sign in"}

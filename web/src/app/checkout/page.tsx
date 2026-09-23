@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { EASE, Reveal } from "@/components/motion";
@@ -62,7 +61,6 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [razorpayEnabled, setRazorpayEnabled] = useState(false);
   const [form, setForm] = useState({
-    email: "",
     name: "",
     phone: "",
     address: "",
@@ -82,24 +80,18 @@ export default function CheckoutPage() {
   // Signed-in customers shouldn't retype what we already know.
   useEffect(() => {
     if (user) {
-      setForm((f) => ({
-        ...f,
-        email: f.email || user.email,
-        name: f.name || user.name,
-      }));
+      setForm((f) => ({ ...f, name: f.name || user.name }));
     }
   }, [user]);
 
+  const authed = status === "authenticated";
   const subtotal = cartSubtotal(items);
   const set = (key: keyof typeof form) => (v: string) =>
     setForm((f) => ({ ...f, [key]: v }));
 
-  const authed = status === "authenticated";
-
-  // The order payload — items and address. Guests include their email; it's
-  // used to attach the order to an account they create later.
+  // The order payload — items and address only. The email and the account the
+  // order belongs to are taken from the session by the server.
   const buildPayload = () => ({
-    ...(authed ? {} : { email: form.email }),
     items: items.map((i) => ({ slug: i.slug, qty: i.qty })),
     shippingAddress: {
       name: form.name,
@@ -164,7 +156,7 @@ export default function CheckoutPage() {
             description: "Leather goods, made slowly.",
             prefill: {
               name: form.name,
-              email: authed ? user?.email : form.email,
+              email: user?.email,
               contact: form.phone,
             },
             theme: { color: "#171310" },
@@ -203,7 +195,36 @@ export default function CheckoutPage() {
   const placeOrder = () =>
     razorpayEnabled ? placeRazorpayOrder() : placeMockOrder();
 
-  if (!mounted) return <div className="min-h-svh" />;
+  // `status` is "unknown" until the session is restored; don't flash the
+  // sign-in wall at someone who is actually signed in.
+  if (!mounted || status === "unknown") return <div className="min-h-svh" />;
+
+  if (!authed) {
+    return (
+      <div className="mx-auto flex min-h-svh max-w-xl flex-col items-center justify-center px-6 text-center">
+        <p className="eyebrow text-muted">Checkout</p>
+        <h1 className="font-display mt-4 text-4xl tracking-tight">
+          Please sign in to continue.
+        </h1>
+        <p className="mt-4 leading-relaxed text-muted">
+          Orders live in your account — that is how you track a piece from the
+          bench to your doorstep, and how we keep your history in one place.
+          Your cart is waiting exactly as you left it.
+        </p>
+        <div className="mt-10 flex flex-wrap justify-center gap-4">
+          <ButtonLink href={`/login?next=${encodeURIComponent("/checkout")}`}>
+            Sign In
+          </ButtonLink>
+          <ButtonLink
+            href={`/register?next=${encodeURIComponent("/checkout")}`}
+            variant="outline"
+          >
+            Create an Account
+          </ButtonLink>
+        </div>
+      </div>
+    );
+  }
 
   if (placed) {
     return (
@@ -221,22 +242,12 @@ export default function CheckoutPage() {
           <p className="eyebrow mt-4 text-cognac">{orderNumber}</p>
         )}
         <p className="mt-4 leading-relaxed text-muted">
-          A confirmation is on its way to {form.email || "your inbox"}. Your
+          A confirmation is on its way to {user?.email ?? "your inbox"}. Your
           pieces will be inspected, wrapped in their dust bags and boxed for
           the courier within two working days.
         </p>
-        {!authed && (
-          <p className="mt-3 text-sm leading-relaxed text-muted">
-            Create an account with this email at any time — this order will be
-            waiting in it.
-          </p>
-        )}
         <div className="mt-10 flex flex-wrap justify-center gap-4">
-          {authed ? (
-            <ButtonLink href="/account">View Your Orders</ButtonLink>
-          ) : (
-            <ButtonLink href="/register">Create an Account</ButtonLink>
-          )}
+          <ButtonLink href="/account">View Your Orders</ButtonLink>
           <ButtonLink href="/" variant="outline">
             Return to the House
           </ButtonLink>
@@ -261,7 +272,7 @@ export default function CheckoutPage() {
 
   const canContinue =
     step === 0
-      ? authed || (form.email.includes("@") && form.name.length > 1)
+      ? true
       : step === 1
         ? form.address.length > 4 && form.city.length > 1 && form.pincode.length >= 6
         : true;
@@ -277,7 +288,10 @@ export default function CheckoutPage() {
 
       <div className="mt-14 grid gap-16 lg:grid-cols-5">
         <div className="lg:col-span-3">
-          <ol className="flex gap-8 border-b border-line pb-5" aria-label="Checkout progress">
+          <ol
+            className="flex flex-wrap gap-x-6 gap-y-3 border-b border-line pb-5 sm:gap-x-8"
+            aria-label="Checkout progress"
+          >
             {steps.map((s, i) => (
               <li key={s} className="flex items-center gap-3">
                 <span
@@ -305,23 +319,17 @@ export default function CheckoutPage() {
               transition={{ duration: 0.5, ease: EASE }}
               className="mt-10"
             >
-              {step === 0 &&
-                (authed && user ? (
-                  <div className="grid gap-8 sm:grid-cols-2">
-                    <div className="border border-line p-6 sm:col-span-2">
-                      <p className="eyebrow text-muted">Ordering as</p>
-                      <p className="font-display mt-2 text-xl">{user.name}</p>
-                      <p className="mt-1 text-sm text-muted">{user.email}</p>
-                    </div>
-                    <Field id="phone" label="Phone (for the courier)" type="tel" autoComplete="tel" value={form.phone} onChange={set("phone")} />
+              {step === 0 && user && (
+                <div className="grid gap-8 sm:grid-cols-2">
+                  <div className="border border-line p-6 sm:col-span-2">
+                    <p className="eyebrow text-muted">Ordering as</p>
+                    <p className="font-display mt-2 text-xl">{user.name}</p>
+                    <p className="mt-1 text-sm text-muted">{user.email}</p>
                   </div>
-                ) : (
-                  <div className="grid gap-8 sm:grid-cols-2">
-                    <Field id="email" label="Email" type="email" autoComplete="email" value={form.email} onChange={set("email")} className="sm:col-span-2" />
-                    <Field id="name" label="Full name" autoComplete="name" value={form.name} onChange={set("name")} />
-                    <Field id="phone" label="Phone" type="tel" autoComplete="tel" value={form.phone} onChange={set("phone")} />
-                  </div>
-                ))}
+                  <Field id="name" label="Deliver to (name)" autoComplete="name" value={form.name} onChange={set("name")} />
+                  <Field id="phone" label="Phone (for the courier)" type="tel" autoComplete="tel" value={form.phone} onChange={set("phone")} />
+                </div>
+              )}
               {step === 1 && (
                 <div className="grid gap-8 sm:grid-cols-2">
                   <Field id="address" label="Address" autoComplete="street-address" value={form.address} onChange={set("address")} className="sm:col-span-2" />
@@ -382,16 +390,6 @@ export default function CheckoutPage() {
           {error && (
             <p role="alert" className="mt-6 border-l-2 border-cognac pl-4 text-sm text-cognac-deep">
               {error}
-            </p>
-          )}
-
-          {mounted && status !== "authenticated" && (
-            <p className="mt-6 text-xs leading-relaxed text-muted">
-              <Link href="/login" className="link-underline text-foreground">
-                Sign in
-              </Link>{" "}
-              to keep this order in your account and track it from bench to
-              doorstep.
             </p>
           )}
         </div>

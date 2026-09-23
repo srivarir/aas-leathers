@@ -112,7 +112,7 @@ export function Header() {
             </Link>
             <Link
               href="/account"
-              className="hidden p-1 transition-opacity duration-300 hover:opacity-60 sm:block"
+              className="p-1 transition-opacity duration-300 hover:opacity-60"
               aria-label="Account"
             >
               <UserIcon />
@@ -168,7 +168,7 @@ export function Header() {
                 <Link href="/wishlist" className="eyebrow link-underline" onClick={() => setMenuOpen(false)}>
                   Wishlist
                 </Link>
-                <Link href="/login" className="eyebrow link-underline" onClick={() => setMenuOpen(false)}>
+                <Link href="/account" className="eyebrow link-underline" onClick={() => setMenuOpen(false)}>
                   Account
                 </Link>
               </motion.div>
