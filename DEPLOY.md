@@ -126,6 +126,7 @@ Set these on the **API** (Node.js app):
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` | your mailbox |
 | `MAIL_FROM` | `AAS Leathers <orders@yourdomain.com>` |
 | `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | test keys now, live later |
+| `CLOUDINARY_URL` | `cloudinary://key:secret@cloudname` — see below |
 
 ¹ Generate with:
 `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`
@@ -137,12 +138,40 @@ On the **storefront** (Web App): `NEXT_PUBLIC_API_URL` only.
 
 ---
 
+## Product photos (Cloudinary — required on any PaaS)
+
+Uploaded photos are written to the API's own disk **only when Cloudinary is not
+configured**. That is fine on Hostinger, which has a real disk, but on Render,
+Railway, Fly and most other PaaS free tiers the filesystem is **ephemeral**:
+every restart or redeploy deletes `server/uploads/`, so the catalogue keeps the
+image URL while the file behind it 404s. A restart is not rare — Render's free
+tier also spins down after 15 minutes of inactivity.
+
+To store photos off the server instead:
+
+1. Sign up free at <https://cloudinary.com> (25 GB storage + 25 GB/month
+   bandwidth, no card).
+2. **Dashboard** → copy the **API environment variable**, which looks like
+   `cloudinary://123456789:abcXYZ@your-cloud-name`.
+3. Set it on the **API** as `CLOUDINARY_URL` and restart.
+
+That is the whole change — no code edit. The server logs a warning at boot if it
+is running in production without it. Uploads then land in the
+`aas-leathers/products` folder on Cloudinary with random filenames, and survive
+every redeploy and host move.
+
+> Photos uploaded *before* Cloudinary was configured are gone for good — the
+> files were deleted with the old filesystem. Re-upload them in the admin
+> (**Products → Edit**) once the variable is set.
+
+---
+
 ## Redeploying later
 
 - **Code change:** push to GitHub and pull/redeploy the affected app. The
   storefront must be rebuilt (`npm run build`) for its changes to show.
-- **Careful:** when updating the API, do not delete `server/uploads/` — that is
-  where uploaded product photos live.
+- **Careful:** if you are *not* using Cloudinary, do not delete
+  `server/uploads/` when updating the API — that is where product photos live.
 
 ---
 

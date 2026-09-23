@@ -23,6 +23,19 @@ export const env = {
   get clientUrl() {
     return this.clientUrls[0];
   },
+  // Uploaded product photos go to Cloudinary when configured. Either paste the
+  // single CLOUDINARY_URL from the dashboard, or set the three parts.
+  cloudinary: {
+    url: process.env.CLOUDINARY_URL ?? null,
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME ?? null,
+    apiKey: process.env.CLOUDINARY_API_KEY ?? null,
+    apiSecret: process.env.CLOUDINARY_API_SECRET ?? null,
+    get enabled() {
+      return Boolean(
+        this.url || (this.cloudName && this.apiKey && this.apiSecret),
+      );
+    },
+  },
   jwt: {
     accessSecret: required("JWT_ACCESS_SECRET", "dev-access-secret-change-me"),
     refreshSecret: required("JWT_REFRESH_SECRET", "dev-refresh-secret-change-me"),
