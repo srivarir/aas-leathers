@@ -95,8 +95,16 @@ what lets the browser call the API (CORS) and keeps logins working.
 
 - Home, shop and a product page load with images.
 - Register → the verification email arrives (real email).
-- Add to cart → checkout → pay with test card `4111 1111 1111 1111` (any
-  future expiry/CVV) → order confirms and appears in your account.
+- Add to cart → checkout → in the Razorpay window choose **UPI** and enter
+  `success@razorpay` → order confirms and appears in your account.
+  (Use `failure@razorpay` to test a failed payment.)
+
+  > Do not test with `4111 1111 1111 1111`. Razorpay treats it as an
+  > **international** card, and Indian accounts have international payments
+  > disabled by default — you will get "International cards are not
+  > supported". That is the correct setting for a store selling in India.
+  > For card testing, use a current **domestic** test card from Razorpay's
+  > own Test Card Details documentation.
 - Sign in at `/admin` with your `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
 - Add a product in the admin → it appears in shop, search, and prices
   correctly at checkout.
