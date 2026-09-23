@@ -13,7 +13,16 @@ export const env = {
   nodeEnv: process.env.NODE_ENV ?? "development",
   isProduction: process.env.NODE_ENV === "production",
   mongoUri: process.env.MONGODB_URI ?? null,
-  clientUrl: process.env.CLIENT_URL ?? "http://localhost:3000",
+  // CLIENT_URL may list several origins, comma-separated, so the storefront
+  // can be moved between hosts without breaking the one already live.
+  // The first is canonical (used for links inside emails).
+  clientUrls: (process.env.CLIENT_URL ?? "http://localhost:3000")
+    .split(",")
+    .map((u) => u.trim().replace(/\/$/, ""))
+    .filter(Boolean),
+  get clientUrl() {
+    return this.clientUrls[0];
+  },
   jwt: {
     accessSecret: required("JWT_ACCESS_SECRET", "dev-access-secret-change-me"),
     refreshSecret: required("JWT_REFRESH_SECRET", "dev-refresh-secret-change-me"),
