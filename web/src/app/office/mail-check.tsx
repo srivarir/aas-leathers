@@ -22,6 +22,8 @@ interface TestResult {
   ok: boolean;
   to: string;
   sentAs?: string;
+  fellBack?: boolean;
+  reason?: string;
   error?: string;
   code?: string | null;
   response?: string | null;
@@ -144,10 +146,19 @@ export function MailCheck() {
       {result && (
         <div className="mt-5 border-l-2 border-cognac pl-4 text-sm leading-relaxed">
           {result.ok ? (
-            <p>
-              Sent to {result.to} as {result.sentAs}. If it does not arrive,
-              check the spam folder — the message left the server.
-            </p>
+            result.fellBack ? (
+              <p className="text-cognac-deep">
+                Delivered to {result.to}, but the mail server refused the
+                address you asked for, so it went out as {result.sentAs}{" "}
+                instead. Customers still get their mail. To use the other
+                address, make it an alias of {status.config.smtpUser}.
+              </p>
+            ) : (
+              <p>
+                Sent to {result.to} as {result.sentAs}. If it does not arrive,
+                check the spam folder — the message left the server.
+              </p>
+            )
           ) : (
             <p className="text-cognac-deep">
               Refused: {result.error}

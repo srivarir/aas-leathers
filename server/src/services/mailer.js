@@ -50,12 +50,33 @@ function parseSender(from) {
 }
 
 /**
+ * A mail server will only let you send as an address the login owns. Sending
+ * account mail from its own address is a nicety; a customer actually receiving
+ * their verification link is not. So a sender rejection is not fatal — the
+ * message is sent again from the main address rather than lost.
+ */
+function isSenderRejected(err) {
+  const code = err?.responseCode;
+  const text = `${err?.message ?? ""} ${err?.response ?? ""}`;
+  return (
+    code === 553 ||
+    code === 550 ||
+    /sender address rejected|not owned by|sender not allowed|not authori[sz]ed to send|does not match/i.test(
+      text,
+    )
+  );
+}
+
+/**
  * Sends one email. Prefers Brevo's HTTPS API when configured — it works on
  * hosts that block outbound SMTP ports (e.g. Render's free tier), where Gmail
  * SMTP simply times out. Otherwise falls back to the SMTP transport (great
  * locally or on hosts that allow SMTP), or the dev JSON transport.
+ *
+ * Returns the address the message actually went out as, which may not be the
+ * one asked for.
  */
-async function deliver({ to, subject, html, from = FROM }) {
+async function sendOnce({ to, subject, html, from }) {
   if (USE_BREVO) {
     const res = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
@@ -73,11 +94,30 @@ async function deliver({ to, subject, html, from = FROM }) {
     });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
-      throw new Error(`Brevo ${res.status}: ${text.slice(0, 200)}`);
+      const err = new Error(`Brevo ${res.status}: ${text.slice(0, 200)}`);
+      err.responseCode = res.status;
+      err.response = text.slice(0, 300);
+      throw err;
     }
     return;
   }
   await transport.sendMail({ from, to, subject, html });
+}
+
+async function deliver({ to, subject, html, from = FROM }) {
+  try {
+    await sendOnce({ to, subject, html, from });
+    return { sentAs: from, fellBack: false };
+  } catch (err) {
+    if (from === FROM || !isSenderRejected(err)) throw err;
+    console.warn(
+      `[mail] ${from} was refused by the mail server (${err.responseCode ?? "?"}). ` +
+        `Resending as ${FROM}. Make that address an alias of the SMTP login, ` +
+        `or clear MAIL_FROM_VERIFY.`,
+    );
+    await sendOnce({ to, subject, html, from: FROM });
+    return { sentAs: FROM, fellBack: true, reason: err.message };
+  }
 }
 
 /**
@@ -166,14 +206,14 @@ export async function verifyTransport() {
  */
 export async function sendTestEmail(to, which = "orders") {
   const from = which === "verify" ? FROM_VERIFY : FROM;
-  await deliver({
+  const outcome = await deliver({
     to,
     from,
     subject: `Mail check (${which}) — AAS Leathers`,
     html: `<p style="font-family:Arial,sans-serif">This is a test from the workshop office.</p>
            <p style="font-family:Arial,sans-serif;color:#666">Sent as: ${escapeHtml(from)}</p>`,
   });
-  return { sentAs: from };
+  return outcome;
 }
 
 function escapeHtml(s) {

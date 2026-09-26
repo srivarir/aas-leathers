@@ -221,8 +221,8 @@ router.post(
   asyncHandler(async (req, res) => {
     const which = req.body?.which === "verify" ? "verify" : "orders";
     try {
-      const { sentAs } = await sendTestEmail(req.user.email, which);
-      res.json({ ok: true, to: req.user.email, sentAs });
+      const outcome = await sendTestEmail(req.user.email, which);
+      res.json({ ok: true, to: req.user.email, ...outcome });
     } catch (err) {
       // Reported rather than thrown: the exact SMTP refusal is the answer.
       res.status(200).json({
