@@ -29,7 +29,7 @@ export default function AdminProducts() {
   const [busySlug, setBusySlug] = useState<string | null>(null);
 
   const reload = useCallback(() => {
-    return apiFetch<{ products: AdminProduct[] }>("/products/admin/list")
+    return apiFetch<{ products: AdminProduct[] }>("/products/office/list")
       .then((d) => setProducts(d.products))
       .catch((e) => setError(e.message));
   }, []);
@@ -64,7 +64,7 @@ export default function AdminProducts() {
     setError(null);
     try {
       const { product } = await apiFetch<{ product: Record<string, unknown> }>(
-        `/products/admin/item/${p.slug}`,
+        `/products/office/item/${p.slug}`,
       );
       await apiFetch("/products", {
         method: "POST",
@@ -110,7 +110,7 @@ export default function AdminProducts() {
           {products ? `${products.length} pieces in the catalog` : "Loading…"}
         </p>
         <Link
-          href="/admin/products/new"
+          href="/office/products/new"
           className="eyebrow inline-flex cursor-pointer items-center gap-2 border border-espresso bg-espresso px-6 py-3 text-bone transition-colors duration-300 hover:bg-cognac-deep"
         >
           + Add Product
@@ -144,7 +144,7 @@ export default function AdminProducts() {
                         </span>
                       )}
                       <Link
-                        href={`/admin/products/edit?slug=${p.slug}`}
+                        href={`/office/products/edit?slug=${p.slug}`}
                         className="font-display link-underline"
                       >
                         {p.name}
@@ -197,7 +197,7 @@ export default function AdminProducts() {
                   <td className="py-4">
                     <span className="flex items-center gap-4">
                       <Link
-                        href={`/admin/products/edit?slug=${p.slug}`}
+                        href={`/office/products/edit?slug=${p.slug}`}
                         className="link-underline eyebrow text-muted"
                       >
                         Edit

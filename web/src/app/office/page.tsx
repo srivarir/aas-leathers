@@ -90,7 +90,7 @@ export default function AdminDashboard() {
             <ul className="mt-4 divide-y divide-line border-y border-line">
               {stats.lowStock.map((p) => (
                 <li key={p.slug} className="flex items-baseline justify-between py-4">
-                  <Link href="/admin/products" className="link-underline text-sm">
+                  <Link href="/office/products" className="link-underline text-sm">
                     {p.name}
                   </Link>
                   <span

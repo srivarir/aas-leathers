@@ -86,7 +86,7 @@ export function CollectionForm({
           body: JSON.stringify(body),
         });
       }
-      router.push("/admin/collections");
+      router.push("/office/collections");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save.");
@@ -204,7 +204,7 @@ export function CollectionForm({
         <button
           type="button"
           className="link-underline eyebrow cursor-pointer text-muted"
-          onClick={() => router.push("/admin/collections")}
+          onClick={() => router.push("/office/collections")}
         >
           Cancel
         </button>

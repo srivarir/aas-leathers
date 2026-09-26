@@ -7,7 +7,7 @@ export default function NewProductPage() {
   return (
     <div>
       <div className="mb-8">
-        <Link href="/admin/products" className="link-underline eyebrow text-muted">
+        <Link href="/office/products" className="link-underline eyebrow text-muted">
           ← Back to inventory
         </Link>
         <h2 className="font-display mt-4 text-3xl tracking-tight">Add a product</h2>

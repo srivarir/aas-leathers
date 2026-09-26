@@ -132,7 +132,7 @@ export function ProductForm({
           body: JSON.stringify(payload),
         });
       }
-      router.push("/admin/products");
+      router.push("/office/products");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save the product.");
@@ -401,7 +401,7 @@ export function ProductForm({
         </Button>
         <button
           type="button"
-          onClick={() => router.push("/admin/products")}
+          onClick={() => router.push("/office/products")}
           className="link-underline eyebrow cursor-pointer text-muted"
         >
           Cancel

@@ -23,7 +23,7 @@ function EditCollection() {
     }
     // There is no single-collection admin endpoint; the list is small enough
     // that picking the one we need out of it is cheaper than adding a route.
-    apiFetch<{ collections: AdminCollection[] }>("/collections/admin/list")
+    apiFetch<{ collections: AdminCollection[] }>("/collections/office/list")
       .then((d) => {
         const found = d.collections.find((c) => c.slug === slug);
         if (!found) throw new Error("That collection no longer exists.");
@@ -37,7 +37,7 @@ function EditCollection() {
       <div>
         <p className="text-cognac-deep">{error}</p>
         <Link
-          href="/admin/collections"
+          href="/office/collections"
           className="link-underline eyebrow mt-6 inline-block text-muted"
         >
           ← Back to collections
@@ -52,7 +52,7 @@ function EditCollection() {
   return (
     <div>
       <div className="mb-8">
-        <Link href="/admin/collections" className="link-underline eyebrow text-muted">
+        <Link href="/office/collections" className="link-underline eyebrow text-muted">
           ← Back to collections
         </Link>
         <h2 className="font-display mt-4 text-3xl tracking-tight">{draft.name}</h2>

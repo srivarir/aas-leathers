@@ -32,6 +32,10 @@ const FROM =
   process.env.MAIL_FROM ??
   process.env.SMTP_USER ??
   "AAS Leathers <workshop@aasleathers.in>";
+// Account mail (verification, password) can come from its own address, so a
+// customer chasing a confirmation link is not hunting through order receipts.
+// Falls back to the main sender when it is not configured.
+const FROM_VERIFY = process.env.MAIL_FROM_VERIFY ?? FROM;
 const USE_BREVO = Boolean(process.env.BREVO_API_KEY);
 const SENDING_REAL_MAIL =
   USE_BREVO || Boolean(process.env.SMTP_HOST || process.env.SMTP_URL);
@@ -51,7 +55,7 @@ function parseSender(from) {
  * SMTP simply times out. Otherwise falls back to the SMTP transport (great
  * locally or on hosts that allow SMTP), or the dev JSON transport.
  */
-async function deliver({ to, subject, html }) {
+async function deliver({ to, subject, html, from = FROM }) {
   if (USE_BREVO) {
     const res = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
@@ -61,7 +65,7 @@ async function deliver({ to, subject, html }) {
         accept: "application/json",
       },
       body: JSON.stringify({
-        sender: parseSender(FROM),
+        sender: parseSender(from),
         to: [{ email: to }],
         subject,
         htmlContent: html,
@@ -73,7 +77,7 @@ async function deliver({ to, subject, html }) {
     }
     return;
   }
-  await transport.sendMail({ from: FROM, to, subject, html });
+  await transport.sendMail({ from, to, subject, html });
 }
 
 /**
@@ -103,6 +107,7 @@ export async function sendVerificationEmail(user, verifyUrl) {
   try {
     await deliver({
       to: user.email,
+      from: FROM_VERIFY,
       subject: "Confirm your email — AAS Leathers",
       html,
     });

@@ -59,4 +59,92 @@ router.get(
   }),
 );
 
+/**
+ * Per-customer figures for the office. Orders are grouped by email rather than
+ * by account id, so guest orders placed before sign-in was required are still
+ * counted against the person who made them. Cancelled, refunded and failed
+ * orders count as orders but not as money spent.
+ */
+router.get(
+  "/customers",
+  requireAuth,
+  requireRole(...STAFF),
+  asyncHandler(async (_req, res) => {
+    const [users, grouped] = await Promise.all([
+      User.find({ role: "customer" })
+        .select("name email emailVerified createdAt")
+        .sort({ createdAt: -1 })
+        .limit(2000),
+      Order.aggregate([
+        {
+          $group: {
+            _id: "$email",
+            orderCount: { $sum: 1 },
+            totalSpent: {
+              $sum: {
+                $cond: [
+                  { $in: ["$status", DEAD_STATUSES] },
+                  0,
+                  "$amounts.total",
+                ],
+              },
+            },
+            lastOrderAt: { $max: "$createdAt" },
+            name: { $last: "$shippingAddress.name" },
+          },
+        },
+      ]),
+    ]);
+
+    const byEmail = new Map(grouped.map((g) => [g._id, g]));
+
+    const customers = users.map((u) => {
+      const g = byEmail.get(u.email);
+      byEmail.delete(u.email);
+      return {
+        name: u.name,
+        email: u.email,
+        emailVerified: u.emailVerified,
+        joinedAt: u.createdAt,
+        hasAccount: true,
+        orderCount: g?.orderCount ?? 0,
+        totalSpent: g?.totalSpent ?? 0,
+        lastOrderAt: g?.lastOrderAt ?? null,
+      };
+    });
+
+    // Anything left ordered without ever registering an account.
+    for (const g of byEmail.values()) {
+      customers.push({
+        name: g.name ?? "Guest",
+        email: g._id,
+        emailVerified: false,
+        joinedAt: null,
+        hasAccount: false,
+        orderCount: g.orderCount,
+        totalSpent: g.totalSpent,
+        lastOrderAt: g.lastOrderAt,
+      });
+    }
+
+    customers.sort((a, b) => b.totalSpent - a.totalSpent);
+
+    const buyers = customers.filter((c) => c.orderCount > 0);
+    const revenue = buyers.reduce((sum, c) => sum + c.totalSpent, 0);
+
+    res.json({
+      totals: {
+        customers: customers.length,
+        accounts: users.length,
+        verified: customers.filter((c) => c.emailVerified).length,
+        buyers: buyers.length,
+        repeatBuyers: buyers.filter((c) => c.orderCount > 1).length,
+        revenue,
+        averagePerBuyer: buyers.length ? Math.round(revenue / buyers.length) : 0,
+      },
+      customers,
+    });
+  }),
+);
+
 export default router;

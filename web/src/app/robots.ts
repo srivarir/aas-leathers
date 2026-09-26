@@ -6,9 +6,10 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      // Nothing here is secret — these pages are simply useless to a crawler,
-      // and the account and admin areas are guarded server-side regardless.
-      disallow: ["/admin", "/account", "/checkout", "/wishlist", "/verify-email"],
+      // These pages are useless to a crawler. The staff area is deliberately
+      // absent: robots.txt is public, so listing a path here announces it.
+      // It is kept out of search by a noindex header on the page itself.
+      disallow: ["/account", "/checkout", "/wishlist", "/verify-email"],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
   };

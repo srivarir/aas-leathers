@@ -22,7 +22,7 @@ export default function AdminCollections() {
 
   const reload = useCallback(
     () =>
-      apiFetch<{ collections: AdminCollection[] }>("/collections/admin/list")
+      apiFetch<{ collections: AdminCollection[] }>("/collections/office/list")
         .then((d) => setCollections(d.collections))
         .catch((e) => setError(e.message)),
     [],
@@ -77,7 +77,7 @@ export default function AdminCollections() {
           {collections ? `${collections.length} collections` : "Loading…"}
         </p>
         <Link
-          href="/admin/collections/new"
+          href="/office/collections/new"
           className="eyebrow inline-flex cursor-pointer items-center gap-2 border border-espresso bg-espresso px-6 py-3 text-bone transition-colors duration-300 hover:bg-cognac-deep"
         >
           + Add Collection
@@ -111,7 +111,7 @@ export default function AdminCollections() {
                         </span>
                       )}
                       <Link
-                        href={`/admin/collections/edit?slug=${c.slug}`}
+                        href={`/office/collections/edit?slug=${c.slug}`}
                         className="font-display link-underline"
                       >
                         {c.name}
@@ -134,7 +134,7 @@ export default function AdminCollections() {
                   <td className="py-4">
                     <span className="flex items-center gap-4">
                       <Link
-                        href={`/admin/collections/edit?slug=${c.slug}`}
+                        href={`/office/collections/edit?slug=${c.slug}`}
                         className="link-underline eyebrow"
                       >
                         Edit

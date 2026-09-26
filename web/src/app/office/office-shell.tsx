@@ -15,13 +15,14 @@ const STAFF_ROLES = [
 ];
 
 const tabs = [
-  { href: "/admin", label: "Dashboard" },
-  { href: "/admin/orders", label: "Orders" },
-  { href: "/admin/products", label: "Inventory" },
-  { href: "/admin/collections", label: "Collections" },
+  { href: "/office", label: "Dashboard" },
+  { href: "/office/orders", label: "Orders" },
+  { href: "/office/customers", label: "Customers" },
+  { href: "/office/products", label: "Inventory" },
+  { href: "/office/collections", label: "Collections" },
 ] as const;
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export function OfficeShell({ children }: { children: React.ReactNode }) {
   const { user, status, restore } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -67,7 +68,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <nav className="flex flex-wrap gap-x-6 gap-y-2" aria-label="Admin">
           {tabs.map((tab) => {
             const active =
-              tab.href === "/admin" ? pathname === "/admin" : pathname.startsWith(tab.href);
+              tab.href === "/office" ? pathname === "/office" : pathname.startsWith(tab.href);
             return (
               <Link
                 key={tab.href}

@@ -105,7 +105,7 @@ what lets the browser call the API (CORS) and keeps logins working.
   > supported". That is the correct setting for a store selling in India.
   > For card testing, use a current **domestic** test card from Razorpay's
   > own Test Card Details documentation.
-- Sign in at `/admin` with your `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
+- Sign in at `/office` with your `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
 - Add a product in the admin → it appears in shop, search, and prices
   correctly at checkout.
 
@@ -125,6 +125,7 @@ Set these on the **API** (Node.js app):
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | your first admin login |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` | your mailbox |
 | `MAIL_FROM` | `AAS Leathers <orders@aas-leather-craft-bags.com>` |
+| `MAIL_FROM_VERIFY` | `AAS Leathers <verification@aas-leather-craft-bags.com>` |
 | `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | test keys now, live later |
 | `CLOUDINARY_URL` | `cloudinary://key:secret@cloudname` — see below |
 | `COOKIE_SAMESITE` | `lax` once the API is on `api.aas-leather-craft-bags.com` |
@@ -137,8 +138,21 @@ On the **storefront** (Web App): `NEXT_PUBLIC_API_URL` and
 `NEXT_PUBLIC_SITE_URL`. The second one is what canonical links, Open Graph
 tags, `robots.txt` and `sitemap.xml` are built from.
 
-> Tip: create a real mailbox (`orders@aas-leather-craft-bags.com`) in hPanel → Emails and
-> use Hostinger's SMTP, so customers stop seeing a personal Gmail address.
+> Tip: create real mailboxes in hPanel → Emails and use Hostinger's SMTP, so
+> customers stop seeing a personal Gmail address. Two are worth having:
+> `orders@` for receipts and `verification@` for confirmation links, so someone
+> hunting for a confirmation link is not digging through order receipts.
+> `SMTP_USER` authenticates as one mailbox; `MAIL_FROM` and `MAIL_FROM_VERIFY`
+> choose which address each kind of mail is sent *from*. If the mail host
+> refuses to send as an address it has not authenticated, make the second
+> mailbox an alias of the first, or leave `MAIL_FROM_VERIFY` unset — it falls
+> back to `MAIL_FROM`.
+
+> **The staff area is at `/office`, not `/admin`,** and is deliberately absent
+> from `robots.txt` — listing a path there announces it. It carries a
+> `noindex` header instead. That is obscurity, not protection: the real guard
+> is the role check the API enforces on every request. Do not link to it from
+> anywhere public.
 
 ---
 
@@ -262,6 +276,7 @@ development defaults. Set everything first, then start it.
 | `SMTP_USER` | `orders@aas-leather-craft-bags.com` |
 | `SMTP_PASS` | that mailbox's password |
 | `MAIL_FROM` | `AAS Leathers <orders@aas-leather-craft-bags.com>` |
+| `MAIL_FROM_VERIFY` | `AAS Leathers <verification@aas-leather-craft-bags.com>` |
 | `CLOUDINARY_URL` | `cloudinary://key:secret@cloudname` |
 
 Two things **not** to set yet:

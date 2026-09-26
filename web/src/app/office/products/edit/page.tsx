@@ -17,7 +17,7 @@ function EditProduct() {
       return;
     }
     apiFetch<{ product: ProductDraft & { collection: string } }>(
-      `/products/admin/item/${slug}`,
+      `/products/office/item/${slug}`,
     )
       .then((d) => setDraft({ ...d.product, slug }))
       .catch((e) => setError(e.message));
@@ -27,7 +27,7 @@ function EditProduct() {
     return (
       <div>
         <p className="text-cognac-deep">{error}</p>
-        <Link href="/admin/products" className="link-underline eyebrow mt-6 inline-block text-muted">
+        <Link href="/office/products" className="link-underline eyebrow mt-6 inline-block text-muted">
           ← Back to inventory
         </Link>
       </div>
@@ -40,7 +40,7 @@ function EditProduct() {
   return (
     <div>
       <div className="mb-8">
-        <Link href="/admin/products" className="link-underline eyebrow text-muted">
+        <Link href="/office/products" className="link-underline eyebrow text-muted">
           ← Back to inventory
         </Link>
         <h2 className="font-display mt-4 text-3xl tracking-tight">{draft.name}</h2>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { useState } from "react";
 import { ArrowRightIcon } from "@/components/icons";
+import { apiFetch } from "@/lib/api";
 
 const columns: { title: string; links: { href: Route; label: string }[] }[] = [
   {
@@ -41,6 +42,30 @@ const columns: { title: string; links: { href: Route; label: string }[] }[] = [
 export function Footer() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const subscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.includes("@")) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await apiFetch("/subscribers", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      });
+      setSubscribed(true);
+    } catch (err) {
+      setError(
+        err instanceof Error && err.message !== "Failed to fetch"
+          ? err.message
+          : "We couldn't reach the workshop. Please try again.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <footer className="bg-espresso text-bone">
@@ -58,10 +83,7 @@ export function Footer() {
             ) : (
               <form
                 className="mt-8 flex max-w-md items-end gap-4 border-b border-bone/30 pb-3"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (email.includes("@")) setSubscribed(true);
-                }}
+                onSubmit={subscribe}
               >
                 <label htmlFor="newsletter-email" className="sr-only">
                   Email address
@@ -79,11 +101,17 @@ export function Footer() {
                 <button
                   type="submit"
                   aria-label="Subscribe"
-                  className="cursor-pointer p-1 transition-transform duration-500 hover:translate-x-1"
+                  disabled={busy}
+                  className="cursor-pointer p-2.5 transition-transform duration-500 hover:translate-x-1 disabled:opacity-40"
                 >
                   <ArrowRightIcon />
                 </button>
               </form>
+            )}
+            {error && (
+              <p role="alert" className="mt-4 max-w-md text-sm text-bone/70">
+                {error}
+              </p>
             )}
           </div>
 
