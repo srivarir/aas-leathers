@@ -1,10 +1,5 @@
-"use client";
-
 import Link from "next/link";
 import type { Route } from "next";
-import { useState } from "react";
-import { ArrowRightIcon } from "@/components/icons";
-import { apiFetch } from "@/lib/api";
 
 const columns: { title: string; links: { href: Route; label: string }[] }[] = [
   {
@@ -40,79 +35,26 @@ const columns: { title: string; links: { href: Route; label: string }[] }[] = [
 ];
 
 export function Footer() {
-  const [email, setEmail] = useState("");
-  const [subscribed, setSubscribed] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const subscribe = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.includes("@")) return;
-    setBusy(true);
-    setError(null);
-    try {
-      await apiFetch("/subscribers", {
-        method: "POST",
-        body: JSON.stringify({ email }),
-      });
-      setSubscribed(true);
-    } catch (err) {
-      setError(
-        err instanceof Error && err.message !== "Failed to fetch"
-          ? err.message
-          : "We couldn't reach the workshop. Please try again.",
-      );
-    } finally {
-      setBusy(false);
-    }
-  };
-
   return (
     <footer className="bg-espresso text-bone">
       <div className="mx-auto max-w-[1500px] px-6 py-20 lg:px-12 lg:py-28">
         <div className="grid gap-16 lg:grid-cols-2">
           <div>
-            <p className="eyebrow text-bone/50">The Ledger — our letter</p>
+            <p className="eyebrow text-bone/50">The workshop</p>
             <h2 className="font-display mt-6 max-w-md text-3xl leading-snug lg:text-4xl">
-              Notes from the workshop, once a month. Nothing else.
+              Every piece is cut, stitched and finished by hand, in one room.
             </h2>
-            {subscribed ? (
-              <p className="mt-8 text-bone/70">
-                Welcome. The next letter reaches you at the start of the month.
-              </p>
-            ) : (
-              <form
-                className="mt-8 flex max-w-md items-end gap-4 border-b border-bone/30 pb-3"
-                onSubmit={subscribe}
-              >
-                <label htmlFor="newsletter-email" className="sr-only">
-                  Email address
-                </label>
-                <input
-                  id="newsletter-email"
-                  type="email"
-                  required
-                  autoComplete="email"
-                  placeholder="Your email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-transparent text-bone placeholder:text-bone/40 focus:outline-none"
-                />
-                <button
-                  type="submit"
-                  aria-label="Subscribe"
-                  disabled={busy}
-                  className="cursor-pointer p-2.5 transition-transform duration-500 hover:translate-x-1 disabled:opacity-40"
-                >
-                  <ArrowRightIcon />
-                </button>
-              </form>
-            )}
-            {error && (
-              <p role="alert" className="mt-4 max-w-md text-sm text-bone/70">
-                {error}
-              </p>
-            )}
+            <p className="mt-6 max-w-md text-sm leading-relaxed text-bone/70">
+              If you want to know how a piece is made, how to care for one you
+              already carry, or whether we can build something to order — write
+              to us. A person reads it.
+            </p>
+            <Link
+              href="/contact"
+              className="link-underline eyebrow mt-8 inline-block text-bone"
+            >
+              Talk to the workshop
+            </Link>
           </div>
 
           <div className="grid grid-cols-2 gap-10 sm:grid-cols-3">

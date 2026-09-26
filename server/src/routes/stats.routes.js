@@ -59,90 +59,134 @@ router.get(
   }),
 );
 
+const AWAITING = ["pending", "confirmed", "processing", "packed"];
+const TRANSIT = ["shipped", "in-transit", "out-for-delivery"];
+const DAY = 24 * 60 * 60 * 1000;
+
+const change = (current, previous) => {
+  if (previous === 0) return current === 0 ? 0 : null; // null = no basis to compare
+  return Math.round(((current - previous) / previous) * 100);
+};
+
 /**
- * Per-customer figures for the office. Orders are grouped by email rather than
- * by account id, so guest orders placed before sign-in was required are still
- * counted against the person who made them. Cancelled, refunded and failed
- * orders count as orders but not as money spent.
+ * The figures worth acting on, rather than a roll-call of customers: what is
+ * waiting on the workshop today, whether trade is moving, which pieces earn
+ * their bench space and which are only taking it up.
  */
 router.get(
-  "/customers",
+  "/insights",
   requireAuth,
   requireRole(...STAFF),
   asyncHandler(async (_req, res) => {
-    const [users, grouped] = await Promise.all([
-      User.find({ role: "customer" })
-        .select("name email emailVerified createdAt")
-        .sort({ createdAt: -1 })
-        .limit(2000),
-      Order.aggregate([
-        {
-          $group: {
-            _id: "$email",
-            orderCount: { $sum: 1 },
-            totalSpent: {
-              $sum: {
-                $cond: [
-                  { $in: ["$status", DEAD_STATUSES] },
-                  0,
-                  "$amounts.total",
-                ],
+    const now = Date.now();
+    const d30 = new Date(now - 30 * DAY);
+    const d60 = new Date(now - 60 * DAY);
+
+    const [published, awaiting, inTransit, recent, sold, buyers, accounts] =
+      await Promise.all([
+        Product.find({ status: "published" }).select("slug name price stock"),
+        Order.find({ status: { $in: AWAITING } })
+          .select("number createdAt")
+          .sort({ createdAt: 1 })
+          .limit(200),
+        Order.countDocuments({ status: { $in: TRANSIT } }),
+        Order.find({
+          createdAt: { $gte: d60 },
+          status: { $nin: DEAD_STATUSES },
+        }).select("amounts.total createdAt"),
+        Order.aggregate([
+          { $match: { status: { $nin: DEAD_STATUSES } } },
+          { $unwind: "$items" },
+          {
+            $group: {
+              _id: "$items.slug",
+              name: { $last: "$items.name" },
+              units: { $sum: "$items.qty" },
+              revenue: {
+                $sum: { $multiply: ["$items.unitPrice", "$items.qty"] },
               },
             },
-            lastOrderAt: { $max: "$createdAt" },
-            name: { $last: "$shippingAddress.name" },
           },
-        },
-      ]),
-    ]);
+          { $sort: { revenue: -1 } },
+        ]),
+        Order.aggregate([
+          { $match: { status: { $nin: DEAD_STATUSES } } },
+          { $group: { _id: "$email", n: { $sum: 1 } } },
+        ]),
+        User.countDocuments({ role: "customer" }),
+      ]);
 
-    const byEmail = new Map(grouped.map((g) => [g._id, g]));
+    // Trade: the last 30 days against the 30 before them.
+    const thisMonth = recent.filter((o) => o.createdAt >= d30);
+    const lastMonth = recent.filter((o) => o.createdAt < d30);
+    const sum = (list) => list.reduce((t, o) => t + o.amounts.total, 0);
+    const revenueNow = sum(thisMonth);
+    const revenueThen = sum(lastMonth);
+    const aov = (list) =>
+      list.length ? Math.round(sum(list) / list.length) : 0;
 
-    const customers = users.map((u) => {
-      const g = byEmail.get(u.email);
-      byEmail.delete(u.email);
-      return {
-        name: u.name,
-        email: u.email,
-        emailVerified: u.emailVerified,
-        joinedAt: u.createdAt,
-        hasAccount: true,
-        orderCount: g?.orderCount ?? 0,
-        totalSpent: g?.totalSpent ?? 0,
-        lastOrderAt: g?.lastOrderAt ?? null,
-      };
-    });
+    const soldBySlug = new Map(sold.map((s) => [s._id, s]));
 
-    // Anything left ordered without ever registering an account.
-    for (const g of byEmail.values()) {
-      customers.push({
-        name: g.name ?? "Guest",
-        email: g._id,
-        emailVerified: false,
-        joinedAt: null,
-        hasAccount: false,
-        orderCount: g.orderCount,
-        totalSpent: g.totalSpent,
-        lastOrderAt: g.lastOrderAt,
-      });
-    }
+    // Pieces on sale that have never been bought, and the money sitting in
+    // them. Ones with no stock are excluded: nothing is tied up in an empty
+    // shelf, and the sold-out count above already covers them.
+    const neverSold = published
+      .filter((p) => !soldBySlug.has(p.slug) && p.stock > 0)
+      .map((p) => ({
+        slug: p.slug,
+        name: p.name,
+        stock: p.stock,
+        tiedUp: p.stock * p.price,
+      }))
+      .sort((a, b) => b.tiedUp - a.tiedUp);
 
-    customers.sort((a, b) => b.totalSpent - a.totalSpent);
+    // Pieces that sell and are about to run out — the reorder list.
+    const runningOut = published
+      .filter((p) => p.stock <= 3 && soldBySlug.has(p.slug))
+      .map((p) => ({
+        slug: p.slug,
+        name: p.name,
+        stock: p.stock,
+        unitsSold: soldBySlug.get(p.slug).units,
+      }))
+      .sort((a, b) => a.stock - b.stock);
 
-    const buyers = customers.filter((c) => c.orderCount > 0);
-    const revenue = buyers.reduce((sum, c) => sum + c.totalSpent, 0);
+    const repeat = buyers.filter((b) => b.n > 1).length;
 
     res.json({
-      totals: {
-        customers: customers.length,
-        accounts: users.length,
-        verified: customers.filter((c) => c.emailVerified).length,
-        buyers: buyers.length,
-        repeatBuyers: buyers.filter((c) => c.orderCount > 1).length,
-        revenue,
-        averagePerBuyer: buyers.length ? Math.round(revenue / buyers.length) : 0,
+      attention: {
+        awaitingDispatch: awaiting.length,
+        oldestWaitingDays: awaiting.length
+          ? Math.floor((now - awaiting[0].createdAt.getTime()) / DAY)
+          : null,
+        oldestWaitingNumber: awaiting.length ? awaiting[0].number : null,
+        inTransit,
+        outOfStock: published.filter((p) => p.stock === 0).length,
+        runningOut,
       },
-      customers,
+      trade: {
+        revenue: revenueNow,
+        revenueChange: change(revenueNow, revenueThen),
+        orders: thisMonth.length,
+        ordersChange: change(thisMonth.length, lastMonth.length),
+        averageOrder: aov(thisMonth),
+        averageOrderChange: change(aov(thisMonth), aov(lastMonth)),
+      },
+      earning: sold.slice(0, 6).map((s) => ({
+        slug: s._id,
+        name: s.name,
+        units: s.units,
+        revenue: s.revenue,
+      })),
+      neverSold: neverSold.slice(0, 8),
+      neverSoldTotal: neverSold.length,
+      capitalIdle: neverSold.reduce((t, p) => t + p.tiedUp, 0),
+      people: {
+        accounts,
+        buyers: buyers.length,
+        repeat,
+        neverBought: Math.max(accounts - buyers.length, 0),
+      },
     });
   }),
 );

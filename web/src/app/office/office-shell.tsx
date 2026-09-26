@@ -17,7 +17,7 @@ const STAFF_ROLES = [
 const tabs = [
   { href: "/office", label: "Dashboard" },
   { href: "/office/orders", label: "Orders" },
-  { href: "/office/customers", label: "Customers" },
+  { href: "/office/insights", label: "Insights" },
   { href: "/office/products", label: "Inventory" },
   { href: "/office/collections", label: "Collections" },
 ] as const;
