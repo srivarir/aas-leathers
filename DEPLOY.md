@@ -181,31 +181,140 @@ every redeploy and host move.
 
 ## Moving the API off Render
 
-The API currently runs on Render's free tier. Once `api.aas-leather-craft-bags.com`
-exists, move it — the free tier costs you three things that matter for a real
-store:
+The API runs on Render's free tier. Once `api.aas-leather-craft-bags.com`
+exists, move it — the free tier costs three things that matter for a real store:
 
-- **It sleeps.** After 15 minutes of no traffic the first visitor waits
-  30–50 seconds for a cold start.
+- **It sleeps.** After 15 minutes idle the next visitor waits 30–50 seconds.
 - **It blocks SMTP,** which is why verification and order emails never arrived.
 - **Its refresh cookie is third-party,** because the API is on a different
-  domain than the storefront. Safari blocks third-party cookies outright, so
-  on an iPhone a page reload logs the customer out. Chrome still allows it,
-  which is why this may not have shown up in testing yet.
+  domain than the store. Safari blocks third-party cookies outright, so on an
+  iPhone a page reload signs the customer out. Chrome still allows them, which
+  is why this may not have shown up in testing.
 
 All three disappear when the API sits on a subdomain of the store's own domain.
-After the move, set `COOKIE_SAMESITE=lax` on the API so the cookie becomes
-first-party.
 
-Migrate in this order, so the site is never broken:
+### Step 0 — unbreak the live site first (2 minutes)
 
-1. Stand the API up on `api.aas-leather-craft-bags.com` with the same
-   environment variables (plus `COOKIE_SAMESITE=lax`), pointing at the **same**
-   Atlas database. Confirm `/api/health`.
-2. Set `CLIENT_URL` on the **new** API to the live storefront origins.
-3. Point the storefront's `NEXT_PUBLIC_API_URL` at the new API and redeploy.
-4. Check that sign-in, checkout and the admin all work.
-5. Only then suspend the Render service.
+The store is already answering on the real domain, but the API still rejects
+it, so nothing that needs data works. Do this before anything else, so the site
+is healthy while you migrate at your own pace.
+
+On **Render** → the `aas-leathers` service → **Environment** → `CLIENT_URL`:
+
+```
+https://aas-leather-craft-bags.com,https://www.aas-leather-craft-bags.com,https://slateblue-goldfinch-352007.hostingersite.com
+```
+
+Save, wait for the redeploy, and the live store works again.
+
+### Step 1 — copy the current settings
+
+On Render, open **Environment** and copy every value somewhere safe. You need:
+
+`MONGODB_URI`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `ADMIN_EMAIL`,
+`ADMIN_PASSWORD`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, and
+`RAZORPAY_WEBHOOK_SECRET` if you set one.
+
+> **Copy the two JWT secrets exactly.** Generating new ones invalidates every
+> refresh token, which signs every customer out the moment you switch over.
+>
+> **`MONGODB_URI` must be the same Atlas string.** Point the new API at a
+> different database and every account, order and product will look deleted.
+
+### Step 2 — get the code onto Hostinger
+
+In hPanel, use the **Git** tool to clone `https://github.com/srivarir/aas-leathers`
+(branch `main`) into a directory — for example `/domains/aas-leather-craft-bags.com/api`.
+
+This repository holds both apps, so the Node app's root must point at the
+`server` subfolder, not the top of the repo. Never upload `.env` or
+`node_modules`; secrets live in the panel and dependencies get installed there.
+
+### Step 3 — create the Node.js application
+
+hPanel → the **Node.js** app tool → create an application:
+
+| Setting | Value |
+|---|---|
+| Node version | 20 or newer |
+| Application root | the cloned directory **+ `/server`** |
+| Application URL | `api.aas-leather-craft-bags.com` |
+| Startup file | `src/server.js` |
+
+Leave the port alone — Hostinger assigns one and the API reads it from `PORT`.
+
+### Step 4 — set the environment variables, before the first start
+
+The API **refuses to boot in production without `MONGODB_URI`**, and it will
+also refuse if the two JWT secrets are missing, identical, or still the
+development defaults. Set everything first, then start it.
+
+| Key | Value |
+|---|---|
+| `NODE_ENV` | `production` |
+| `MONGODB_URI` | the same Atlas string from Step 1 |
+| `CLIENT_URL` | `https://aas-leather-craft-bags.com,https://www.aas-leather-craft-bags.com` |
+| `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` | copied verbatim from Step 1 |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | same as before |
+| `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | same as before |
+| `SMTP_HOST` | `smtp.hostinger.com` |
+| `SMTP_PORT` | `465` |
+| `SMTP_USER` | `orders@aas-leather-craft-bags.com` |
+| `SMTP_PASS` | that mailbox's password |
+| `MAIL_FROM` | `AAS Leathers <orders@aas-leather-craft-bags.com>` |
+| `CLOUDINARY_URL` | `cloudinary://key:secret@cloudname` |
+
+Two things **not** to set yet:
+
+- **`COOKIE_SAMESITE`** — leave it unset until Step 7. Setting it to `lax` while
+  the storefront still calls the Render API breaks sign-in immediately.
+- **`BREVO_API_KEY`** — if present it takes priority over SMTP. Leave it off so
+  mail goes through the Hostinger mailbox you just configured.
+
+Create the mailbox first, under hPanel → **Emails**, or SMTP will fail to
+authenticate.
+
+### Step 5 — install and start
+
+Run **npm install** from the Node app panel, then **Start**. Then check:
+
+```
+https://api.aas-leather-craft-bags.com/api/health
+```
+
+It must return `{"ok":true,"service":"aas-leathers-api"}`. A Hostinger
+"Default page" means the app is not running or the URL is not bound to it; read
+the app's log before changing anything else.
+
+Nothing is live on the new API yet — the store is still talking to Render — so
+take as long as you need here.
+
+### Step 6 — point the storefront at the new API
+
+On the storefront **Web App**, set:
+
+```
+NEXT_PUBLIC_API_URL = https://api.aas-leather-craft-bags.com/api
+```
+
+> `NEXT_PUBLIC_*` values are baked into the JavaScript **at build time**, so a
+> restart is not enough — the storefront must be **rebuilt and redeployed** for
+> this to take effect.
+
+Then test on the live domain: sign in, browse a product page, add to cart,
+reach checkout, and open `/admin`.
+
+### Step 7 — make the cookie first-party
+
+Only now, on the **API**, add `COOKIE_SAMESITE=lax` and restart. The refresh
+cookie stops being third-party, so iPhone and Safari customers stay signed in.
+Sign in once more afterwards to confirm.
+
+### Step 8 — retire Render
+
+Leave the Render service running but idle for a few days as a fallback. Once
+you are confident, suspend it. Do not delete the Atlas database — the new API
+is using it.
 
 ---
 
