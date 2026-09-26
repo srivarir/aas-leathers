@@ -6,7 +6,7 @@ import { PurchasePanel } from "@/components/product/purchase-panel";
 import { ProductCard } from "@/components/product-card";
 import { Reveal, RevealLines } from "@/components/motion";
 import { categoryLabels, getCollection, relatedProducts } from "@/lib/data";
-import { fetchProductServer } from "@/lib/server-catalog";
+import { fetchCatalogServer, fetchProductServer } from "@/lib/server-catalog";
 import { formatINR } from "@/lib/format";
 
 export async function generateMetadata({
@@ -33,7 +33,7 @@ export default async function ProductPage({
   if (!product) notFound();
 
   const collection = getCollection(product.collection);
-  const related = relatedProducts(product);
+  const related = relatedProducts(await fetchCatalogServer(), product);
 
   const specs = [
     ["Leather", product.leather],

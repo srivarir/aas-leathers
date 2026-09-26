@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Reveal, RevealLines } from "@/components/motion";
 import { ArrowRightIcon } from "@/components/icons";
 import { collections, productsInCollection } from "@/lib/data";
+import { fetchCatalogServer } from "@/lib/server-catalog";
 
 export const metadata: Metadata = {
   title: "Collections",
@@ -11,7 +12,8 @@ export const metadata: Metadata = {
     "Four small collections, each with a reason to exist — Heritage, Voyage, Atelier Small Goods and Everyday Carry.",
 };
 
-export default function CollectionsPage() {
+export default async function CollectionsPage() {
+  const catalog = await fetchCatalogServer();
   return (
     <div className="mx-auto max-w-[1500px] px-6 pb-32 pt-36 lg:px-12">
       <div className="max-w-2xl">
@@ -33,7 +35,7 @@ export default function CollectionsPage() {
 
       <div className="mt-20 space-y-24 lg:space-y-32">
         {collections.map((collection, i) => {
-          const count = productsInCollection(collection.slug).length;
+          const count = productsInCollection(catalog, collection.slug).length;
           const even = i % 2 === 0;
           return (
             <Reveal key={collection.slug}>

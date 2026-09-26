@@ -377,11 +377,15 @@ export const getCollection = (slug: string) =>
 export const getPost = (slug: string) =>
   journalPosts.find((p) => p.slug === slug);
 
-export const productsInCollection = (slug: string) =>
-  products.filter((p) => p.collection === slug);
+export const productsInCollection = (catalog: Product[], slug: string) =>
+  catalog.filter((p) => p.collection === slug);
 
-export const relatedProducts = (product: Product, count = 4) =>
-  products
+export const relatedProducts = (
+  catalog: Product[],
+  product: Product,
+  count = 4,
+) =>
+  catalog
     .filter(
       (p) =>
         p.slug !== product.slug &&

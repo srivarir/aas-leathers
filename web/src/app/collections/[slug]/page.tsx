@@ -3,7 +3,9 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/product-card";
 import { Reveal } from "@/components/motion";
+import { ButtonLink } from "@/components/ui/button";
 import { collections, getCollection, productsInCollection } from "@/lib/data";
+import { fetchCatalogServer } from "@/lib/server-catalog";
 
 export function generateStaticParams() {
   return collections.map((c) => ({ slug: c.slug }));
@@ -29,7 +31,7 @@ export default async function CollectionPage({
   const collection = getCollection(slug);
   if (!collection) notFound();
 
-  const list = productsInCollection(slug);
+  const list = productsInCollection(await fetchCatalogServer(), slug);
 
   return (
     <div className="pb-32">
@@ -57,11 +59,26 @@ export default async function CollectionPage({
       </section>
 
       <div className="mx-auto mt-20 max-w-[1500px] px-6 lg:px-12">
-        <div className="grid grid-cols-1 gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
-          {list.map((product, i) => (
-            <ProductCard key={product.slug} product={product} delay={(i % 3) * 0.08} />
-          ))}
-        </div>
+        {list.length === 0 ? (
+          <Reveal className="mx-auto max-w-md py-16 text-center">
+            <p className="font-display text-2xl">Nothing on the bench yet.</p>
+            <p className="mt-4 text-sm leading-relaxed text-muted">
+              This collection is still being made. The rest of the house is
+              ready when you are.
+            </p>
+            <div className="mt-8">
+              <ButtonLink href="/shop" variant="outline">
+                Browse the Pieces
+              </ButtonLink>
+            </div>
+          </Reveal>
+        ) : (
+          <div className="grid grid-cols-1 gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
+            {list.map((product, i) => (
+              <ProductCard key={product.slug} product={product} delay={(i % 3) * 0.08} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

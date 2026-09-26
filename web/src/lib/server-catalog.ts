@@ -10,6 +10,17 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
  * pieces still render. Returns null when the product does not exist or is not
  * published (the API only returns published products).
  */
+export async function fetchCatalogServer(): Promise<Product[]> {
+  try {
+    const res = await fetch(`${API}/products`, { cache: "no-store" });
+    if (!res.ok) return [];
+    const data = (await res.json()) as { products?: Product[] };
+    return data.products ?? [];
+  } catch {
+    return [];
+  }
+}
+
 export async function fetchProductServer(slug: string): Promise<Product | null> {
   try {
     const res = await fetch(`${API}/products/${encodeURIComponent(slug)}`, {

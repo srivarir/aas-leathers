@@ -8,11 +8,12 @@ import type { Product } from "./types";
 /**
  * The live product catalog, with the static seed as the initial value.
  *
- * The storefront is a static export, so it ships with the seed baked in and
- * renders instantly. On mount it fetches the published catalog from the API
- * and upgrades to live data — new products, price and featured changes appear
- * without a rebuild. If the API is unreachable, the seed simply stays, so the
- * store is never empty.
+ * The seed renders instantly on first paint. On mount the published catalog
+ * is fetched from the API and replaces it, so products added, edited or
+ * deleted in the admin appear without a rebuild — including the case where
+ * every product has been deleted, which must show an empty shop rather than
+ * resurrect the seed. Only a failed request keeps the seed, so the store is
+ * never blank because the API blinked.
  */
 export function useCatalog(): Product[] {
   const [catalog, setCatalog] = useState<Product[]>(seedProducts);
@@ -21,9 +22,7 @@ export function useCatalog(): Product[] {
     let active = true;
     apiFetch<{ products: Product[] }>("/products")
       .then((d) => {
-        if (active && Array.isArray(d.products) && d.products.length > 0) {
-          setCatalog(d.products);
-        }
+        if (active && Array.isArray(d.products)) setCatalog(d.products);
       })
       .catch(() => {
         /* API offline — keep the seed catalog. */
