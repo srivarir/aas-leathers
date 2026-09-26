@@ -4,6 +4,11 @@ import { requireAuth, requireRole } from "../middleware/auth.js";
 import { Order } from "../models/order.js";
 import { Product } from "../models/product.js";
 import { User } from "../models/user.js";
+import {
+  mailConfigSummary,
+  sendTestEmail,
+  verifyTransport,
+} from "../services/mailer.js";
 
 const router = Router();
 
@@ -188,6 +193,46 @@ router.get(
         neverBought: Math.max(accounts - buyers.length, 0),
       },
     });
+  }),
+);
+
+/**
+ * What the mail setup is and whether it actually connects. Customer emails are
+ * deliberately fire-and-forget, so a broken mailbox fails silently for months;
+ * this is the way to see it.
+ */
+router.get(
+  "/mail",
+  requireAuth,
+  requireRole("admin", "super-admin"),
+  asyncHandler(async (_req, res) => {
+    res.json({
+      config: mailConfigSummary(),
+      connection: await verifyTransport(),
+    });
+  }),
+);
+
+/** Sends a real test message to the signed-in staff address, errors and all. */
+router.post(
+  "/mail",
+  requireAuth,
+  requireRole("admin", "super-admin"),
+  asyncHandler(async (req, res) => {
+    const which = req.body?.which === "verify" ? "verify" : "orders";
+    try {
+      const { sentAs } = await sendTestEmail(req.user.email, which);
+      res.json({ ok: true, to: req.user.email, sentAs });
+    } catch (err) {
+      // Reported rather than thrown: the exact SMTP refusal is the answer.
+      res.status(200).json({
+        ok: false,
+        to: req.user.email,
+        error: err.message,
+        code: err.code ?? null,
+        response: err.response ?? null,
+      });
+    }
   }),
 );
 

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
 import { formatINR } from "@/lib/format";
+import { MailCheck } from "./mail-check";
 
 interface Stats {
   revenue: number;
@@ -103,6 +104,10 @@ export default function AdminDashboard() {
             </ul>
           )}
         </div>
+      </div>
+
+      <div className="mt-16">
+        <MailCheck />
       </div>
     </div>
   );

@@ -148,6 +148,12 @@ tags, `robots.txt` and `sitemap.xml` are built from.
 > mailbox an alias of the first, or leave `MAIL_FROM_VERIFY` unset — it falls
 > back to `MAIL_FROM`.
 
+> **Checking mail:** the office dashboard has a Mail panel showing whether the
+> API can reach the mail server, which addresses it sends from, and a button
+> that sends a real test message to your own address and reports the SMTP
+> refusal verbatim. Customer emails are fire-and-forget by design — a broken
+> mailbox fails silently — so this panel is the way to see it.
+
 > **The staff area is at `/office`, not `/admin`,** and is deliberately absent
 > from `robots.txt` — listing a path there announces it. It carries a
 > `noindex` header instead. That is obscurity, not protection: the real guard

@@ -120,6 +120,62 @@ export async function sendVerificationEmail(user, verifyUrl) {
   }
 }
 
+/**
+ * What the mail setup actually is, for the office's mail check. Deliberately
+ * never returns the password — only whether one is present.
+ */
+export function mailConfigSummary() {
+  const mode = USE_BREVO
+    ? "brevo"
+    : process.env.SMTP_HOST || process.env.SMTP_URL
+      ? "smtp"
+      : "none";
+  return {
+    mode,
+    sendingRealMail: SENDING_REAL_MAIL,
+    smtpHost: process.env.SMTP_HOST ?? null,
+    smtpPort: process.env.SMTP_PORT ?? (process.env.SMTP_HOST ? "465 (default)" : null),
+    smtpUser: process.env.SMTP_USER ?? null,
+    smtpPasswordSet: Boolean(process.env.SMTP_PASS),
+    from: FROM,
+    fromVerify: FROM_VERIFY,
+    verifyDiffersFromLogin:
+      FROM_VERIFY !== FROM &&
+      Boolean(process.env.SMTP_USER) &&
+      !FROM_VERIFY.includes(process.env.SMTP_USER),
+  };
+}
+
+/** Opens a connection and authenticates, without sending anything. */
+export async function verifyTransport() {
+  if (USE_BREVO) return { ok: true, note: "Brevo HTTPS API — nothing to connect to." };
+  if (!SENDING_REAL_MAIL) {
+    return { ok: false, error: "No SMTP configured — mail is only being logged, never sent." };
+  }
+  try {
+    await transport.verify();
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err.message, code: err.code ?? null };
+  }
+}
+
+/**
+ * Sends a real test message and lets the failure through, unlike the customer
+ * emails which must never break the request that triggered them.
+ */
+export async function sendTestEmail(to, which = "orders") {
+  const from = which === "verify" ? FROM_VERIFY : FROM;
+  await deliver({
+    to,
+    from,
+    subject: `Mail check (${which}) — AAS Leathers`,
+    html: `<p style="font-family:Arial,sans-serif">This is a test from the workshop office.</p>
+           <p style="font-family:Arial,sans-serif;color:#666">Sent as: ${escapeHtml(from)}</p>`,
+  });
+  return { sentAs: from };
+}
+
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
