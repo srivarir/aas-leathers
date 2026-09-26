@@ -24,12 +24,13 @@ export const REFRESH_COOKIE = "aas_refresh";
 export const refreshCookieOptions = {
   httpOnly: true,
   secure: env.isProduction,
-  // In production the storefront and API may sit on different domains (e.g.
-  // a Vercel frontend + a Render API), so the cookie must be SameSite=None to
-  // be sent cross-site. That requires Secure (HTTPS), which production has.
-  // Cross-site read of the refresh response is still blocked by the CORS lock.
+  // Cross-site (storefront and API on different domains) needs SameSite=None,
+  // which in turn needs Secure — production has HTTPS. Set COOKIE_SAMESITE=lax
+  // once they share a domain: the cookie is then first-party, which survives
+  // third-party cookie blocking and adds CSRF protection for free. Either way
+  // a cross-site read of the refresh response is blocked by the CORS lock.
   // Locally everything is same-site, so Lax keeps things simple.
-  sameSite: env.isProduction ? "none" : "lax",
+  sameSite: env.isProduction ? env.cookieSameSite : "lax",
   path: "/api/auth",
   maxAge: env.jwt.refreshTtlDays * 24 * 60 * 60 * 1000,
 };

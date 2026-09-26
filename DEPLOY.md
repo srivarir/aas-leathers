@@ -6,8 +6,8 @@ database lives elsewhere, on MongoDB Atlas's free tier.
 
 | Piece | Folder | Where it goes | Cost |
 |---|---|---|---|
-| Storefront (Next.js) | `web/` | Hostinger **Web App** → `yourdomain.com` | included |
-| API (Express) | `server/` | Hostinger **Node.js app** → `api.yourdomain.com` | included |
+| Storefront (Next.js) | `web/` | Hostinger **Web App** → `aas-leather-craft-bags.com` | included |
+| API (Express) | `server/` | Hostinger **Node.js app** → `api.aas-leather-craft-bags.com` | included |
 | Database (MongoDB) | — | **MongoDB Atlas** free (M0) | ₹0 |
 
 ## Why this is better than the Vercel + Render setup
@@ -43,7 +43,7 @@ Hostinger doesn't offer MongoDB, so the database stays in the cloud.
 
 ## Part 1 — The API (Express) on a subdomain
 
-1. hPanel → **Domains → Subdomains** → create `api.yourdomain.com`.
+1. hPanel → **Domains → Subdomains** → create `api.aas-leather-craft-bags.com`.
 2. hPanel → **Website → Node.js** → create an application on that subdomain:
    - **Startup file:** `src/server.js`
    - **Node version:** 20 or newer
@@ -53,14 +53,14 @@ Hostinger doesn't offer MongoDB, so the database stays in the cloud.
    upload `node_modules` or `.env`.**
 4. Add the **environment variables** (see the reference table below).
 5. Run **npm install**, then **Start**.
-6. Check `https://api.yourdomain.com/api/health` → `{"ok":true,...}`.
+6. Check `https://api.aas-leather-craft-bags.com/api/health` → `{"ok":true,...}`.
    The catalogue and admin account seed themselves on first boot.
 
 ---
 
 ## Part 2 — The storefront (Next.js) as a Web App
 
-1. hPanel → **Web Apps** → create an app on `yourdomain.com`, pointing at the
+1. hPanel → **Web Apps** → create an app on `aas-leather-craft-bags.com`, pointing at the
    `web/` folder (or the GitHub repo with `web` as the root directory).
 2. It must run in **server mode** — build `npm run build`, start `npm start`.
    This is required: it is what gives products added in the admin their own
@@ -68,10 +68,10 @@ Hostinger doesn't offer MongoDB, so the database stays in the cloud.
 3. Set one environment variable:
 
    ```
-   NEXT_PUBLIC_API_URL = https://api.yourdomain.com/api
+   NEXT_PUBLIC_API_URL = https://api.aas-leather-craft-bags.com/api
    ```
 
-4. Deploy, then open `https://yourdomain.com`.
+4. Deploy, then open `https://aas-leather-craft-bags.com`.
 
 > **Confirmed supported.** Hostinger documents Next.js as a server-side Node.js
 > framework on Business hosting, running as a **persistent server process**
@@ -86,7 +86,7 @@ Hostinger doesn't offer MongoDB, so the database stays in the cloud.
 
 ## Part 3 — Introduce them
 
-On the **API**, set `CLIENT_URL = https://yourdomain.com` and restart. This is
+On the **API**, set `CLIENT_URL = https://aas-leather-craft-bags.com` and restart. This is
 what lets the browser call the API (CORS) and keeps logins working.
 
 ---
@@ -119,21 +119,25 @@ Set these on the **API** (Node.js app):
 |---|---|
 | `NODE_ENV` | `production` |
 | `MONGODB_URI` | your Atlas string |
-| `CLIENT_URL` | `https://yourdomain.com` |
+| `CLIENT_URL` | `https://aas-leather-craft-bags.com` |
 | `JWT_ACCESS_SECRET` | long random string¹ |
 | `JWT_REFRESH_SECRET` | a **different** long random string¹ |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | your first admin login |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` | your mailbox |
-| `MAIL_FROM` | `AAS Leathers <orders@yourdomain.com>` |
+| `MAIL_FROM` | `AAS Leathers <orders@aas-leather-craft-bags.com>` |
 | `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | test keys now, live later |
 | `CLOUDINARY_URL` | `cloudinary://key:secret@cloudname` — see below |
+| `COOKIE_SAMESITE` | `lax` once the API is on `api.aas-leather-craft-bags.com` |
+| `NEXT_PUBLIC_SITE_URL` | (storefront) `https://aas-leather-craft-bags.com` |
 
 ¹ Generate with:
 `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`
 
-On the **storefront** (Web App): `NEXT_PUBLIC_API_URL` only.
+On the **storefront** (Web App): `NEXT_PUBLIC_API_URL` and
+`NEXT_PUBLIC_SITE_URL`. The second one is what canonical links, Open Graph
+tags, `robots.txt` and `sitemap.xml` are built from.
 
-> Tip: create a real mailbox (`orders@yourdomain.com`) in hPanel → Emails and
+> Tip: create a real mailbox (`orders@aas-leather-craft-bags.com`) in hPanel → Emails and
 > use Hostinger's SMTP, so customers stop seeing a personal Gmail address.
 
 ---
@@ -175,9 +179,42 @@ every redeploy and host move.
 
 ---
 
+## Moving the API off Render
+
+The API currently runs on Render's free tier. Once `api.aas-leather-craft-bags.com`
+exists, move it — the free tier costs you three things that matter for a real
+store:
+
+- **It sleeps.** After 15 minutes of no traffic the first visitor waits
+  30–50 seconds for a cold start.
+- **It blocks SMTP,** which is why verification and order emails never arrived.
+- **Its refresh cookie is third-party,** because the API is on a different
+  domain than the storefront. Safari blocks third-party cookies outright, so
+  on an iPhone a page reload logs the customer out. Chrome still allows it,
+  which is why this may not have shown up in testing yet.
+
+All three disappear when the API sits on a subdomain of the store's own domain.
+After the move, set `COOKIE_SAMESITE=lax` on the API so the cookie becomes
+first-party.
+
+Migrate in this order, so the site is never broken:
+
+1. Stand the API up on `api.aas-leather-craft-bags.com` with the same
+   environment variables (plus `COOKIE_SAMESITE=lax`), pointing at the **same**
+   Atlas database. Confirm `/api/health`.
+2. Set `CLIENT_URL` on the **new** API to the live storefront origins.
+3. Point the storefront's `NEXT_PUBLIC_API_URL` at the new API and redeploy.
+4. Check that sign-in, checkout and the admin all work.
+5. Only then suspend the Render service.
+
+---
+
 ## Before real customers
 
-- Switch Razorpay to **Live** keys (needs the client's business KYC).
+- Switch Razorpay to **Live** keys (needs the client's business KYC), add
+  `aas-leather-craft-bags.com` to the account's authorised domains, and set
+  the webhook to
+  `https://api.aas-leather-craft-bags.com/api/payments/razorpay/webhook`.
 - Replace the hot-linked Unsplash photos with the client's own product images.
 - Fill the bracketed placeholders in Privacy / Terms / Data & Compliance
   (legal entity, GSTIN, grievance officer) and have them reviewed.

@@ -36,6 +36,14 @@ export const env = {
       );
     },
   },
+  // "lax" once the storefront and API share a registrable domain (the store
+  // on example.com, the API on api.example.com) — that keeps the refresh
+  // cookie first-party, so Safari and any browser blocking third-party
+  // cookies still keep people signed in. "none" is required only while the
+  // two sit on genuinely different domains.
+  cookieSameSite: (process.env.COOKIE_SAMESITE ?? "").toLowerCase() === "lax"
+    ? "lax"
+    : "none",
   jwt: {
     accessSecret: required("JWT_ACCESS_SECRET", "dev-access-secret-change-me"),
     refreshSecret: required("JWT_REFRESH_SECRET", "dev-refresh-secret-change-me"),
