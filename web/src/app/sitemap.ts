@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
-import { collections, journalPosts, products as seedProducts } from "@/lib/data";
+import { journalPosts, products as seedProducts } from "@/lib/data";
 import { SITE_URL } from "@/lib/site";
+import { fetchCollectionsServer } from "@/lib/server-catalog";
 import type { Product } from "@/lib/types";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
@@ -36,7 +37,10 @@ async function catalogue(): Promise<Product[]> {
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
-  const live = await catalogue();
+  const [live, collections] = await Promise.all([
+    catalogue(),
+    fetchCollectionsServer(),
+  ]);
 
   return [
     ...STATIC_PATHS.map((p) => ({

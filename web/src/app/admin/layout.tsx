@@ -18,6 +18,7 @@ const tabs = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/orders", label: "Orders" },
   { href: "/admin/products", label: "Inventory" },
+  { href: "/admin/collections", label: "Collections" },
 ] as const;
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -63,7 +64,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <p className="eyebrow text-muted">The workshop office</p>
           <h1 className="font-display mt-2 text-3xl tracking-tight">Administration</h1>
         </div>
-        <nav className="flex gap-7" aria-label="Admin">
+        <nav className="flex flex-wrap gap-x-6 gap-y-2" aria-label="Admin">
           {tabs.map((tab) => {
             const active =
               tab.href === "/admin" ? pathname === "/admin" : pathname.startsWith(tab.href);

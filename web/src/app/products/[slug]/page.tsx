@@ -5,8 +5,12 @@ import { ProductGallery } from "@/components/product/gallery";
 import { PurchasePanel } from "@/components/product/purchase-panel";
 import { ProductCard } from "@/components/product-card";
 import { Reveal, RevealLines } from "@/components/motion";
-import { categoryLabels, getCollection, relatedProducts } from "@/lib/data";
-import { fetchCatalogServer, fetchProductServer } from "@/lib/server-catalog";
+import { categoryLabels, relatedProducts } from "@/lib/data";
+import {
+  fetchCatalogServer,
+  fetchCollectionServer,
+  fetchProductServer,
+} from "@/lib/server-catalog";
 import { formatINR } from "@/lib/format";
 
 export async function generateMetadata({
@@ -32,8 +36,11 @@ export default async function ProductPage({
   const product = await fetchProductServer(slug);
   if (!product) notFound();
 
-  const collection = getCollection(product.collection);
-  const related = relatedProducts(await fetchCatalogServer(), product);
+  const [collection, catalog] = await Promise.all([
+    fetchCollectionServer(product.collection),
+    fetchCatalogServer(),
+  ]);
+  const related = relatedProducts(catalog, product);
 
   const specs = [
     ["Leather", product.leather],

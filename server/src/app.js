@@ -11,6 +11,7 @@ import orderRoutes from "./routes/order.routes.js";
 import statsRoutes from "./routes/stats.routes.js";
 import uploadRoutes, { UPLOAD_DIR } from "./routes/upload.routes.js";
 import paymentRoutes from "./routes/payments.routes.js";
+import collectionRoutes from "./routes/collection.routes.js";
 
 export function createApp() {
   const app = express();
@@ -60,6 +61,7 @@ export function createApp() {
 
   app.use("/api/auth", authRoutes);
   app.use("/api/products", productRoutes);
+  app.use("/api/collections", collectionRoutes);
   app.use("/api/orders", orderRoutes);
   app.use("/api/stats", statsRoutes);
   app.use("/api/uploads", uploadRoutes);

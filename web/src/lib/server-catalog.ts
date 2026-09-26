@@ -1,5 +1,5 @@
 import { getProduct } from "./data";
-import type { Product } from "./types";
+import type { Collection, Product } from "./types";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
 
@@ -10,6 +10,29 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
  * pieces still render. Returns null when the product does not exist or is not
  * published (the API only returns published products).
  */
+/**
+ * The published collections, in the order the admin arranged them. Like the
+ * catalogue, there is no seed fallback: a collection link that 404s is worse
+ * than a collection that is briefly missing.
+ */
+export async function fetchCollectionsServer(): Promise<Collection[]> {
+  try {
+    const res = await fetch(`${API}/collections`, { cache: "no-store" });
+    if (!res.ok) return [];
+    const data = (await res.json()) as { collections?: Collection[] };
+    return data.collections ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchCollectionServer(
+  slug: string,
+): Promise<Collection | null> {
+  const all = await fetchCollectionsServer();
+  return all.find((c) => c.slug === slug) ?? null;
+}
+
 export async function fetchCatalogServer(): Promise<Product[]> {
   try {
     const res = await fetch(`${API}/products`, { cache: "no-store" });

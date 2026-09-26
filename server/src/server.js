@@ -4,6 +4,8 @@ import { createApp } from "./app.js";
 import { Product } from "./models/product.js";
 import { User } from "./models/user.js";
 import { seedProducts } from "./data/seed-products.js";
+import { Collection } from "./models/collection.js";
+import { seedCollections } from "./data/seed-collections.js";
 
 /**
  * Ensures a staff account exists. Production requires explicit
@@ -35,6 +37,12 @@ async function main() {
   await connectDb();
 
   // Seed the catalog on an empty database so the API is useful immediately.
+  // Collections are seeded independently of products: a store may legitimately
+  // delete every product, and it still needs its collections.
+  if ((await Collection.estimatedDocumentCount()) === 0) {
+    await Collection.insertMany(seedCollections);
+    console.log(`[seed] inserted ${seedCollections.length} collections`);
+  }
   const count = await Product.estimatedDocumentCount();
   if (count === 0) {
     await Product.insertMany(seedProducts);

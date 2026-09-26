@@ -3,8 +3,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { Reveal, RevealLines } from "@/components/motion";
 import { ArrowRightIcon } from "@/components/icons";
-import { collections, productsInCollection } from "@/lib/data";
-import { fetchCatalogServer } from "@/lib/server-catalog";
+import { productsInCollection } from "@/lib/data";
+import {
+  fetchCatalogServer,
+  fetchCollectionsServer,
+} from "@/lib/server-catalog";
 
 export const metadata: Metadata = {
   title: "Collections",
@@ -13,7 +16,10 @@ export const metadata: Metadata = {
 };
 
 export default async function CollectionsPage() {
-  const catalog = await fetchCatalogServer();
+  const [catalog, collections] = await Promise.all([
+    fetchCatalogServer(),
+    fetchCollectionsServer(),
+  ]);
   return (
     <div className="mx-auto max-w-[1500px] px-6 pb-32 pt-36 lg:px-12">
       <div className="max-w-2xl">

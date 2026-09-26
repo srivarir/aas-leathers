@@ -39,6 +39,32 @@ export default function AdminOrders() {
       .catch((e) => setError(e.message));
   }, []);
 
+  const remove = async (o: AdminOrder) => {
+    const pieces = o.items.map((i) => `${i.name} x${i.qty}`).join(", ");
+    if (
+      !window.confirm(
+        `Permanently delete order ${o.number}?
+
+${pieces}
+
+` +
+          "The stock it used will be returned to inventory. This cannot be " +
+          "undone — to cancel a real order, set its status to cancelled instead.",
+      )
+    )
+      return;
+    setSavingId(o.id);
+    setError(null);
+    try {
+      await apiFetch(`/orders/${o.id}`, { method: "DELETE" });
+      setOrders((os) => os!.filter((x) => x.id !== o.id));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not delete the order.");
+    } finally {
+      setSavingId(null);
+    }
+  };
+
   const updateStatus = async (id: string, status: string) => {
     setSavingId(id);
     const previous = orders;
@@ -56,7 +82,7 @@ export default function AdminOrders() {
     }
   };
 
-  if (error) return <p className="text-cognac-deep">{error}</p>;
+  if (error && !orders) return <p className="text-cognac-deep">{error}</p>;
   if (!orders) {
     return <div className="h-64 animate-pulse border border-line bg-bone-soft/60" />;
   }
@@ -65,12 +91,14 @@ export default function AdminOrders() {
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[720px] text-sm">
+    <div>
+      {error && <p className="mb-6 text-sm text-cognac-deep">{error}</p>}
+      <div className="overflow-x-auto">
+      <table className="w-full min-w-[820px] text-sm">
         <thead>
           <tr className="border-b border-line text-left">
-            {["Order", "Customer", "Items", "Total", "Placed", "Status"].map((h) => (
-              <th key={h} className="eyebrow py-3 pr-6 font-medium text-muted">
+            {["Order", "Customer", "Items", "Total", "Placed", "Status", ""].map((h) => (
+              <th key={h || "actions"} className="eyebrow py-3 pr-6 font-medium text-muted">
                 {h}
               </th>
             ))}
@@ -112,10 +140,26 @@ export default function AdminOrders() {
                   ))}
                 </select>
               </td>
+              <td className="py-4">
+                <button
+                  className="link-underline eyebrow cursor-pointer text-cognac-deep disabled:opacity-40"
+                  disabled={savingId === o.id}
+                  onClick={() => remove(o)}
+                >
+                  Delete
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
+      </div>
+      <p className="mt-8 max-w-3xl text-xs leading-relaxed text-muted">
+        <strong className="font-medium text-foreground">Delete</strong> removes
+        an order for good and returns its stock to inventory — it is for
+        clearing test orders. A real order a customer changed their mind about
+        should be set to <em>cancelled</em>, which keeps the record.
+      </p>
     </div>
   );
 }

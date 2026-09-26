@@ -52,7 +52,7 @@ export function Header() {
       >
         <div className="mx-auto flex max-w-[1500px] items-center justify-between px-6 py-5 lg:px-12">
           <button
-            className="cursor-pointer p-1 lg:hidden"
+            className="cursor-pointer p-2.5 lg:p-1 lg:hidden"
             aria-label={menuOpen ? "Close menu" : "Open menu"}
             onClick={() => setMenuOpen(!menuOpen)}
           >
@@ -82,7 +82,7 @@ export function Header() {
             <span className="eyebrow ml-2 hidden align-middle sm:inline">Leathers</span>
           </Link>
 
-          <div className="flex items-center gap-5 lg:gap-7">
+          <div className="flex items-center gap-0.5 sm:gap-5 lg:gap-7">
             <nav className="hidden items-center gap-9 lg:flex" aria-label="Secondary">
               {nav.slice(3).map((item) => (
                 <Link
@@ -97,7 +97,7 @@ export function Header() {
               ))}
             </nav>
             <button
-              className="cursor-pointer p-1 transition-opacity duration-300 hover:opacity-60"
+              className="cursor-pointer p-2.5 lg:p-1 transition-opacity duration-300 hover:opacity-60"
               aria-label="Search"
               onClick={() => setSearchOpen(true)}
             >
@@ -105,26 +105,26 @@ export function Header() {
             </button>
             <Link
               href="/wishlist"
-              className="hidden p-1 transition-opacity duration-300 hover:opacity-60 sm:block"
+              className="hidden p-2.5 lg:p-1 transition-opacity duration-300 hover:opacity-60 sm:block"
               aria-label="Wishlist"
             >
               <HeartIcon />
             </Link>
             <Link
               href="/account"
-              className="p-1 transition-opacity duration-300 hover:opacity-60"
+              className="p-2.5 lg:p-1 transition-opacity duration-300 hover:opacity-60"
               aria-label="Account"
             >
               <UserIcon />
             </Link>
             <button
-              className="relative cursor-pointer p-1 transition-opacity duration-300 hover:opacity-60"
+              className="relative cursor-pointer p-2.5 lg:p-1 transition-opacity duration-300 hover:opacity-60"
               aria-label={`Cart, ${count} items`}
               onClick={() => setCartOpen(true)}
             >
               <BagIcon />
               {count > 0 && (
-                <span className="absolute -right-1.5 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-cognac text-[10px] font-medium text-bone">
+                <span className="absolute right-1 top-0.5 flex h-4 w-4 lg:-right-1.5 lg:-top-1 items-center justify-center rounded-full bg-cognac text-[10px] font-medium text-bone">
                   {count}
                 </span>
               )}

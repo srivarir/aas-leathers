@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "./api";
 import { products as seedProducts } from "./data";
-import type { Product } from "./types";
+import type { Collection, Product } from "./types";
 
 /**
  * The live product catalog, with the static seed as the initial value.
@@ -33,4 +33,29 @@ export function useCatalog(): Product[] {
   }, []);
 
   return catalog;
+}
+
+/**
+ * The live collections. Unlike the catalog there is no seed to fall back on:
+ * a form that offers collections which no longer exist would file products
+ * under nothing, so it starts empty and fills in once the API answers.
+ */
+export function useCollections(): Collection[] {
+  const [collections, setCollections] = useState<Collection[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    apiFetch<{ collections: Collection[] }>("/collections")
+      .then((d) => {
+        if (active && Array.isArray(d.collections)) setCollections(d.collections);
+      })
+      .catch(() => {
+        /* API offline — the caller renders an empty list. */
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return collections;
 }

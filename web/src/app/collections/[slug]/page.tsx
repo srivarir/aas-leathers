@@ -4,12 +4,11 @@ import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/product-card";
 import { Reveal } from "@/components/motion";
 import { ButtonLink } from "@/components/ui/button";
-import { collections, getCollection, productsInCollection } from "@/lib/data";
-import { fetchCatalogServer } from "@/lib/server-catalog";
-
-export function generateStaticParams() {
-  return collections.map((c) => ({ slug: c.slug }));
-}
+import { productsInCollection } from "@/lib/data";
+import {
+  fetchCatalogServer,
+  fetchCollectionServer,
+} from "@/lib/server-catalog";
 
 export async function generateMetadata({
   params,
@@ -17,7 +16,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const collection = getCollection(slug);
+  const collection = await fetchCollectionServer(slug);
   if (!collection) return {};
   return { title: collection.name, description: collection.description };
 }
@@ -28,10 +27,13 @@ export default async function CollectionPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const collection = getCollection(slug);
+  const [collection, catalog] = await Promise.all([
+    fetchCollectionServer(slug),
+    fetchCatalogServer(),
+  ]);
   if (!collection) notFound();
 
-  const list = productsInCollection(await fetchCatalogServer(), slug);
+  const list = productsInCollection(catalog, slug);
 
   return (
     <div className="pb-32">

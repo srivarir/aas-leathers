@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { apiFetch, apiUpload } from "@/lib/api";
-import { categoryLabels, collections } from "@/lib/data";
+import { categoryLabels } from "@/lib/data";
+import { useCollections } from "@/lib/use-catalog";
 
 export interface ProductDraft {
   slug?: string;
@@ -64,6 +65,7 @@ export function ProductForm({
   mode: "create" | "edit";
 }) {
   const router = useRouter();
+  const collections = useCollections();
   const [form, setForm] = useState<ProductDraft>(initial);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -214,6 +216,11 @@ export function ProductForm({
               onChange={(e) => set("collection", e.target.value)}
               className={`${inputClass} cursor-pointer`}
             >
+              {collections.length === 0 && (
+                <option value={form.collection}>
+                  {form.collection || "Loading collections…"}
+                </option>
+              )}
               {collections.map((c) => (
                 <option key={c.slug} value={c.slug}>
                   {c.name}
