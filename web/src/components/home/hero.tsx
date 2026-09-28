@@ -5,7 +5,6 @@ import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { EASE } from "@/components/motion";
 import { ButtonLink } from "@/components/ui/button";
-import { IMAGES } from "@/lib/data";
 
 export function Hero() {
   const ref = useRef<HTMLElement>(null);
@@ -20,13 +19,23 @@ export function Hero() {
   return (
     <section ref={ref} className="relative h-[100svh] overflow-hidden bg-espresso">
       <motion.div style={{ y }} className="absolute inset-0">
+        {/* A tall phone screen crops the landscape photo down to bare weave,
+            so portraits get their own composition with the whole bag in it. */}
         <Image
-          src={IMAGES.heroBag}
-          alt="A full-grain leather tote in warm afternoon light"
+          src="/hero-woven-bag-portrait.webp"
+          alt="A hand-woven dark brown leather shoulder bag"
           fill
           priority
           sizes="100vw"
-          className="animate-drift object-cover"
+          className="animate-drift object-cover sm:hidden"
+        />
+        <Image
+          src="/hero-woven-bag.webp"
+          alt="A hand-woven dark brown leather shoulder bag"
+          fill
+          priority
+          sizes="100vw"
+          className="animate-drift hidden object-cover sm:block"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-espresso/75 via-espresso/25 to-espresso/35" />
       </motion.div>
