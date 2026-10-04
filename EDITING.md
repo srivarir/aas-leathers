@@ -131,10 +131,21 @@ the page never shows that file directly.
 The originals are kept in **`brand/`** at the top of the repo, outside the
 website, so every file above can be rebuilt from them.
 
-The tab icon is the **gold-on-green** seal. Several sizes are supplied rather
-than one large file, because a browser asked to squash a 512px image down to 16
-does it badly. At 16 pixels the detail is gone and it reads as a gold medallion
-on green — the colour is what identifies it at that size.
+The tab icon is the **gold-on-green** seal as a round medallion with
+transparent corners, so it sits on the tab strip whatever colour that strip is.
+Several sizes are supplied rather than one large file, because a browser asked
+to squash a 512px image down to 16 does it badly. At 16 pixels the detail is
+gone and it reads as a gold-rimmed green disc — the colour and the round shape
+are what identify it at that size.
+
+The iOS home-screen icon (`apple-icon.png`) is the one that is **not**
+transparent: iOS fills transparent areas with black. It is flattened onto the
+seal's own green instead.
+
+> A logo file showing a grey-and-white checkerboard is **not** transparent —
+> that is how an editor draws emptiness, and if the file has no alpha channel
+> those squares are real pixels. The transparent master lives at
+> `brand/logo-gold-transparent.png`.
 
 Elsewhere on the site the seal is used in the bone-on-espresso colouring that
 matches the rest of the design.
