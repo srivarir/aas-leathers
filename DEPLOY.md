@@ -82,6 +82,13 @@ Hostinger doesn't offer MongoDB, so the database stays in the cloud.
 > (`npm run build` in `web/`) and upload the project including the generated
 > `.next` folder, then just run the start command.
 >
+> **The storefront builds with webpack, not Turbopack.** Turbopack runs the
+> PostCSS transform in a spawned worker, and on constrained shared hosting that
+> worker exits before it can be connected to — the build then dies on
+> `globals.css` with *"node process exited before we could connect to it"*.
+> `npm run build` therefore runs `next build --webpack`, which does the same
+> work in-process. `npm run build:turbopack` is still there for local speed.
+>
 > **Build-time packages must stay in `dependencies`, not `devDependencies`.**
 > Hosts install with `NODE_ENV=production`, which skips devDependencies, so
 > Tailwind and TypeScript would be missing and the build dies in the PostCSS
