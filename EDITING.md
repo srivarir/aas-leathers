@@ -100,14 +100,23 @@ In the office. Do not touch code for these.
 
 ### The hero photo
 
-`components/home/hero.tsx` holds **two** images:
+Three files in **`web/public/`**, and only one of them is yours to replace:
 
-- `/hero-woven-bag.webp` — desktop and tablet
-- `/hero-woven-bag-portrait.webp` — phones
+| File | What it is |
+|---|---|
+| `hero-woven-bag.webp` | **the original — replace this one** |
+| `hero-woven-bag-wide.webp` | built from it, shown on landscape screens |
+| `hero-woven-bag-portrait.webp` | built from it, shown on portrait screens |
 
-Both files sit in **`web/public/`**. Phones need their own version because a wide photo, cropped to a tall phone screen, loses the product entirely.
+One photograph cannot survive every screen shape. The browser fills the whole
+hero with it, so a wide short window crops the top and bottom off, and a tall
+phone screen crops the sides off. The two built files are the same photograph
+composed with enough margin around the bag that it stays whole either way, and
+the page picks between them by screen orientation.
 
-To swap the hero, replace the files in `web/public/` keeping the same names, or upload new ones and change the two `src=` lines.
+**To change the hero:** replace `hero-woven-bag.webp` and ask for the other two
+to be regenerated. Replacing it on its own will not change what anyone sees —
+the page never shows that file directly.
 
 ### The other site photos
 
