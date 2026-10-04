@@ -81,6 +81,14 @@ Hostinger doesn't offer MongoDB, so the database stays in the cloud.
 > If the build runs out of memory on the server, build locally instead
 > (`npm run build` in `web/`) and upload the project including the generated
 > `.next` folder, then just run the start command.
+>
+> **Build-time packages must stay in `dependencies`, not `devDependencies`.**
+> Hosts install with `NODE_ENV=production`, which skips devDependencies, so
+> Tailwind and TypeScript would be missing and the build dies in the PostCSS
+> step on `globals.css` with `Cannot find module '@tailwindcss/postcss'`. It
+> builds fine locally, where devDependencies are installed, which makes this
+> look like a config problem when it is a missing-package problem. Check any
+> new build-time dependency with `npm ci --omit=dev && npm run build`.
 
 ---
 
