@@ -122,7 +122,7 @@ the page never shows that file directly.
 
 | Where it appears | File |
 |---|---|
-| Browser tab and phone home screen | `web/src/app/icon.png`, `apple-icon.png` |
+| Browser tab and phone home screen | `web/src/app/icon.png` (32px), `icon1.png` (192px), `icon2.png` (512px), `apple-icon.png` (180px) |
 | Link previews when the site is shared | `web/src/app/opengraph-image.png` |
 | Footer | `web/public/logo-bone.webp` |
 | Order and verification emails | `web/public/logo-email.png` |
@@ -131,9 +131,13 @@ the page never shows that file directly.
 The originals are kept in **`brand/`** at the top of the repo, outside the
 website, so every file above can be rebuilt from them.
 
-The tab icon is the **A S** monogram from the middle of the seal, not the whole
-seal. At 16 pixels the knotwork rings collapse into a grey circle and nothing
-is readable; two letters survive. The full seal is used everywhere it has room.
+The tab icon is the **gold-on-green** seal. Several sizes are supplied rather
+than one large file, because a browser asked to squash a 512px image down to 16
+does it badly. At 16 pixels the detail is gone and it reads as a gold medallion
+on green — the colour is what identifies it at that size.
+
+Elsewhere on the site the seal is used in the bone-on-espresso colouring that
+matches the rest of the design.
 
 ### The other site photos
 
