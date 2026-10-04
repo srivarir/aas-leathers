@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { env } from "../config/env.js";
 
 /**
  * Real email is sent when SMTP is configured, either as discrete host/user/
@@ -36,6 +37,9 @@ const FROM =
 // customer chasing a confirmation link is not hunting through order receipts.
 // Falls back to the main sender when it is not configured.
 const FROM_VERIFY = process.env.MAIL_FROM_VERIFY ?? FROM;
+// Absolute, because an email is read outside the site. Blocked images
+// fall back to the alt text and the wordmark underneath.
+const LOGO_URL = `${env.clientUrl}/logo-email.png`;
 const USE_BREVO = Boolean(process.env.BREVO_API_KEY);
 const SENDING_REAL_MAIL =
   USE_BREVO || Boolean(process.env.SMTP_HOST || process.env.SMTP_URL);
@@ -128,6 +132,7 @@ async function deliver({ to, subject, html, from = FROM }) {
 export async function sendVerificationEmail(user, verifyUrl) {
   const html = `
   <div style="font-family:Georgia,serif;max-width:520px;margin:0 auto;color:#1d1915;background:#f4efe7;padding:40px">
+    <img src="${LOGO_URL}" alt="AAS LEATHER" width="64" height="64" style="display:block;border:0;margin-bottom:14px" />
     <p style="letter-spacing:.25em;font-size:11px;font-family:Arial,sans-serif">AAS LEATHERS</p>
     <h1 style="font-weight:normal;font-size:24px">Confirm your email</h1>
     <p style="font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#4a443c">
@@ -239,6 +244,7 @@ export async function sendOrderConfirmation(order) {
 
   const html = `
   <div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;color:#1d1915;background:#f4efe7;padding:40px">
+    <img src="${LOGO_URL}" alt="AAS LEATHER" width="64" height="64" style="display:block;border:0;margin-bottom:14px" />
     <p style="letter-spacing:.25em;font-size:11px;font-family:Arial,sans-serif">AAS LEATHERS</p>
     <h1 style="font-weight:normal;font-size:26px">The bench has your order.</h1>
     <p style="font-family:Arial,sans-serif;font-size:13px;color:#857b6f">

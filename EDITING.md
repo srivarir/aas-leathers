@@ -118,6 +118,23 @@ the page picks between them by screen orientation.
 to be regenerated. Replacing it on its own will not change what anyone sees —
 the page never shows that file directly.
 
+### The logo
+
+| Where it appears | File |
+|---|---|
+| Browser tab and phone home screen | `web/src/app/icon.png`, `apple-icon.png` |
+| Link previews when the site is shared | `web/src/app/opengraph-image.png` |
+| Footer | `web/public/logo-bone.webp` |
+| Order and verification emails | `web/public/logo-email.png` |
+| Invoice PDFs | `server/src/assets/logo.png` |
+
+The originals are kept in **`brand/`** at the top of the repo, outside the
+website, so every file above can be rebuilt from them.
+
+The tab icon is the **A S** monogram from the middle of the seal, not the whole
+seal. At 16 pixels the knotwork rings collapse into a grey circle and nothing
+is readable; two letters survive. The full seal is used everywhere it has room.
+
 ### The other site photos
 
 Everything else uses a shared list of image addresses in **`lib/data.ts`**, near the top, called `IMAGES`.

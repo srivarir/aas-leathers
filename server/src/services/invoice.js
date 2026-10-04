@@ -1,4 +1,13 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import PDFDocument from "pdfkit";
+
+const SEAL = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "assets",
+  "logo.png",
+);
 
 const currency = new Intl.NumberFormat("en-IN", {
   style: "currency",
@@ -23,7 +32,14 @@ export function streamInvoice(order, res) {
   );
   doc.pipe(res);
 
-  // Masthead
+  // Masthead. The seal sits top-right; a missing file must never cost the
+  // customer their invoice, so it is drawn opportunistically.
+  const mastheadTop = doc.y;
+  try {
+    doc.image(SEAL, doc.page.width - 56 - 64, mastheadTop - 6, { width: 64 });
+  } catch {
+    /* no seal — the wordmark below still identifies the invoice */
+  }
   doc.font("Times-Roman").fontSize(26).fillColor(INK).text("AAS Leathers");
   doc
     .font("Helvetica")

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
 
@@ -40,6 +41,15 @@ export function Footer() {
       <div className="mx-auto max-w-[1500px] px-6 py-20 lg:px-12 lg:py-28">
         <div className="grid gap-16 lg:grid-cols-2">
           <div>
+            {/* The seal is detailed, so it only goes where it has room to be
+                read. The footer is the one place on the page that does. */}
+            <Image
+              src="/logo-bone.webp"
+              alt="AAS Leather — hand made craft"
+              width={112}
+              height={112}
+              className="mb-10 h-24 w-24 opacity-90 lg:h-28 lg:w-28"
+            />
             <p className="eyebrow text-bone/50">The workshop</p>
             <h2 className="font-display mt-6 max-w-md text-3xl leading-snug lg:text-4xl">
               Every piece is cut, stitched and finished by hand, in one room.
