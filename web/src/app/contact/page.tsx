@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Reveal } from "@/components/motion";
 import { Button } from "@/components/ui/button";
+import { CONTACT } from "@/lib/contact";
 
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
@@ -27,19 +28,25 @@ export default function ContactPage() {
             <dl className="mt-14 space-y-8">
               <div>
                 <dt className="eyebrow text-muted">Write</dt>
-                <dd className="mt-2 font-display text-xl">workshop@aasleathers.in</dd>
+                <dd className="mt-2 font-display text-xl">
+                  <a href={`mailto:${CONTACT.email}`} className="link-underline">
+                    {CONTACT.email}
+                  </a>
+                </dd>
               </div>
               <div>
                 <dt className="eyebrow text-muted">Call</dt>
-                <dd className="mt-2 font-display text-xl">+91 44 2811 0000</dd>
-                <dd className="mt-1 text-xs text-muted">Monday to Saturday, 10:00–18:00 IST</dd>
+                <dd className="mt-2 font-display text-xl">{CONTACT.phone}</dd>
+                <dd className="mt-1 text-xs text-muted">{CONTACT.phoneHours}</dd>
               </div>
               <div>
                 <dt className="eyebrow text-muted">Visit</dt>
                 <dd className="mt-2 text-sm leading-relaxed text-foreground/75">
-                  The Workshop, 14 Leather Lane,
-                  <br /> Chennai 600 004, India
-                  <br />
+                  {CONTACT.addressLines.map((line) => (
+                    <span key={line} className="block">
+                      {line}
+                    </span>
+                  ))}
                   <span className="text-muted">By appointment — the benches are working.</span>
                 </dd>
               </div>

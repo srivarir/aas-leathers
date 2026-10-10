@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { EditorialPage } from "@/components/editorial-page";
+import { ADDRESS_INLINE, CONTACT, GRIEVANCE } from "@/lib/contact";
 
 export const metadata: Metadata = {
   title: "Data & Compliance",
@@ -22,10 +23,10 @@ export default function DataCompliancePage() {
           ],
           list: [
             "Legal entity — [Registered legal name, e.g. AAS Leathers Pvt. Ltd.]",
-            "Registered address — 14 Leather Lane, Chennai 600 004, Tamil Nadu, India",
+            `Registered address — ${CONTACT.addressLines.join(", ")}`,
             "GSTIN — [15-digit GST identification number]",
             "CIN — [Corporate Identity Number, if incorporated]",
-            "Contact — workshop@aasleathers.in · +91 44 2811 0000",
+            `Contact — ${CONTACT.email} · ${CONTACT.phone}`,
           ],
         },
         {
@@ -62,7 +63,7 @@ export default function DataCompliancePage() {
         {
           heading: "Consumer protection & grievances",
           paragraphs: [
-            "Your rights under the Consumer Protection Act, 2019 and the E-Commerce Rules, 2020 always apply. For any grievance — about an order, a payment, your data, or the store itself — contact our Grievance Officer at grievance@aasleathers.in or AAS Leathers, 14 Leather Lane, Chennai 600 004. We acknowledge within 48 hours and aim to resolve within 30 days.",
+            `Your rights under the Consumer Protection Act, 2019 and the E-Commerce Rules, 2020 always apply. For any grievance — about an order, a payment, your data, or the store itself — contact ${GRIEVANCE.officer} at ${GRIEVANCE.email} or ${ADDRESS_INLINE}. We acknowledge within ${GRIEVANCE.acknowledgeWithin} and aim to resolve within ${GRIEVANCE.resolveWithin}.`,
           ],
         },
         {

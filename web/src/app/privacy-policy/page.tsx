@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { EditorialPage } from "@/components/editorial-page";
+import { ADDRESS_INLINE, CONTACT, GRIEVANCE } from "@/lib/contact";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -18,7 +19,7 @@ export default function PrivacyPolicyPage() {
         {
           heading: "Who we are",
           paragraphs: [
-            "AAS Leathers (“we”, “us”, the workshop) operates this store from Chennai, India, and is the Data Fiduciary responsible for the personal data described here. You can reach us at workshop@aasleathers.in or The Workshop, 14 Leather Lane, Chennai 600 004.",
+            `AAS Leather (“we”, “us”, the workshop) operates this store from Chennai, India, and is the Data Fiduciary responsible for the personal data described here. You can reach us at ${CONTACT.email} or ${ADDRESS_INLINE}.`,
           ],
         },
         {
@@ -96,7 +97,7 @@ export default function PrivacyPolicyPage() {
           heading: "Grievance Officer",
           paragraphs: [
             "In line with the IT Act, 2000 and the DPDP Act, 2023, you can contact our Grievance Officer with any privacy concern. We acknowledge every grievance within 48 hours and resolve it within 30 days.",
-            "Grievance Officer — [Name to be appointed], AAS Leathers, 14 Leather Lane, Chennai 600 004. Email: grievance@aasleathers.in.",
+            `${GRIEVANCE.officer}, ${ADDRESS_INLINE}. Email: ${GRIEVANCE.email}.`,
           ],
         },
       ]}

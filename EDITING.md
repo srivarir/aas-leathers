@@ -189,20 +189,18 @@ Keep the quotes, drop the curly braces. WebP or JPEG, around 2000px wide, under 
 
 These are invented and must be corrected before real customers arrive:
 
-**Invented contact details** — `workshop@aasleathers.in`, `+91 44 2811 0000`,
-and the Chennai workshop address. They appear in five files:
-`app/contact/page.tsx`, `app/terms/page.tsx`, `app/privacy-policy/page.tsx`,
-`app/refund-policy/page.tsx`, `app/data-compliance/page.tsx`. Search the repo
-for `aasleathers.in` to find every one.
+**Contact details now live in one file:** `web/src/lib/contact.ts`. The email,
+phone, address and grievance contact are written there once and pulled into the
+contact page and all four policy pages. Change them there, not in the pages.
 
-**Three bracketed blanks** that need the registered business details:
+Two values in that file are still invented and marked `TODO` — the **phone
+number** and the **postal address**. The grievance officer is published as a
+role (`The Grievance Officer`) rather than a person; India's e-commerce rules
+expect a named individual, so put the real name in when there is one.
 
-| Blank | File |
-|---|---|
-| `[Registered legal name, …]` | `app/data-compliance/page.tsx` |
-| `[15-digit GST identification number]` | `app/data-compliance/page.tsx` |
-| `[Corporate Identity Number, …]` | `app/data-compliance/page.tsx` |
-| `[Name to be appointed]` (Grievance Officer) | `app/privacy-policy/page.tsx` |
+**Three bracketed blanks** that need the registered business details, all in
+`app/data-compliance/page.tsx`: `[Registered legal name, …]`,
+`[15-digit GST identification number]`, `[Corporate Identity Number, …]`.
 
 **The remaining stock photography,** which is not the client's product. Only
 the hero is a real photograph so far.

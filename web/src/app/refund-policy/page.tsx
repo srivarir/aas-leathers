@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { EditorialPage } from "@/components/editorial-page";
+import { CONTACT, GRIEVANCE } from "@/lib/contact";
 
 export const metadata: Metadata = { title: "Returns & Refunds" };
 
@@ -15,7 +16,7 @@ export default function RefundPolicyPage() {
           heading: "Thirty days, freely",
           paragraphs: [
             "Return any unused piece in its original packaging within 30 days of delivery for a full refund — no forms, no restocking fee, no questions beyond how we could have described it better.",
-            "Arrange a return by writing to workshop@aasleathers.in with your order number. We schedule the pickup; you tape the box.",
+            `Arrange a return by writing to ${CONTACT.email} with your order number. We schedule the pickup; you tape the box.`,
           ],
         },
         {
@@ -45,7 +46,7 @@ export default function RefundPolicyPage() {
         {
           heading: "How to reach us",
           paragraphs: [
-            "For any return, refund or cancellation, email workshop@aasleathers.in with your order number, or contact our Grievance Officer at grievance@aasleathers.in. We acknowledge within 48 hours and resolve within 30 days, in keeping with the Consumer Protection (E-Commerce) Rules, 2020.",
+            `For any return, refund or cancellation, email ${CONTACT.email} with your order number, or contact ${GRIEVANCE.officer} at ${GRIEVANCE.email}. We acknowledge within ${GRIEVANCE.acknowledgeWithin} and resolve within ${GRIEVANCE.resolveWithin}, in keeping with the Consumer Protection (E-Commerce) Rules, 2020.`,
           ],
         },
       ]}

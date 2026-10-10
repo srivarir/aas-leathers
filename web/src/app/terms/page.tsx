@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { EditorialPage } from "@/components/editorial-page";
+import { ADDRESS_INLINE, GRIEVANCE } from "@/lib/contact";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
@@ -80,7 +81,7 @@ export default function TermsPage() {
         {
           heading: "Grievance redressal",
           paragraphs: [
-            "For any complaint about an order or this store, contact our Grievance Officer at grievance@aasleathers.in or AAS Leathers, 14 Leather Lane, Chennai 600 004. We acknowledge within 48 hours and aim to resolve within 30 days, in line with the Consumer Protection (E-Commerce) Rules, 2020.",
+            `For any complaint about an order or this store, contact ${GRIEVANCE.officer} at ${GRIEVANCE.email} or ${ADDRESS_INLINE}. We acknowledge within ${GRIEVANCE.acknowledgeWithin} and aim to resolve within ${GRIEVANCE.resolveWithin}, in line with the Consumer Protection (E-Commerce) Rules, 2020.`,
           ],
         },
       ]}
