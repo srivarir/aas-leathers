@@ -48,8 +48,8 @@ export default function AdminOrders() {
 ${pieces}
 
 ` +
-          "The stock it used will be returned to inventory. This cannot be " +
-          "undone — to cancel a real order, set its status to cancelled instead.",
+          "This cannot be undone — to cancel a real order, set its status to " +
+          "cancelled instead.",
       )
     )
       return;
@@ -156,8 +156,7 @@ ${pieces}
       </div>
       <p className="mt-8 max-w-3xl text-xs leading-relaxed text-muted">
         <strong className="font-medium text-foreground">Delete</strong> removes
-        an order for good and returns its stock to inventory — it is for
-        clearing test orders. A real order a customer changed their mind about
+        an order for good — it is for clearing test orders. A real order a customer changed their mind about
         should be set to <em>cancelled</em>, which keeps the record.
       </p>
     </div>

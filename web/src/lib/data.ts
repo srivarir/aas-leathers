@@ -83,7 +83,6 @@ export const products: Product[] = [
       "Interior slip pocket sized for an A5 notebook",
     ],
     care: "Wipe with a dry cloth. Condition with our balm twice a year. Let rain dry naturally — never near heat.",
-    inStock: true,
     featured: true,
   },
   {
@@ -110,7 +109,6 @@ export const products: Product[] = [
       "Signature-stamped and numbered by its maker",
     ],
     care: "Condition the bridle leather when it lifts a light bloom. Polish brass with a soft cloth.",
-    inStock: true,
     featured: true,
   },
   {
@@ -137,7 +135,6 @@ export const products: Product[] = [
       "Detachable shoulder strap in matching leather",
     ],
     care: "Wax annually with the included tin. Scuffs polish out with a warm cloth — or leave them; they suit it.",
-    inStock: true,
     featured: true,
   },
   {
@@ -165,7 +162,6 @@ export const products: Product[] = [
       "Back slip pocket for tickets and phone",
     ],
     care: "Pull-up leather self-heals from light scratches with a rub of the thumb. Condition yearly.",
-    inStock: true,
     featured: true,
   },
   {
@@ -193,7 +189,6 @@ export const products: Product[] = [
       "Fits a 11-inch tablet, flat",
     ],
     care: "Avoid prolonged direct sun to keep the cognac even. Store stuffed, in its dust bag.",
-    inStock: true,
   },
   {
     slug: "cartographer-backpack",
@@ -219,7 +214,6 @@ export const products: Product[] = [
       "Shoulder straps lined with vegetable-tanned splits",
     ],
     care: "Re-oil lightly when the leather pales at the flex points. The canvas can be re-waxed with any paraffin bar.",
-    inStock: true,
   },
   {
     slug: "ledger-wallet",
@@ -247,7 +241,6 @@ export const products: Product[] = [
       "Breaks in to your carry within a month",
     ],
     care: "It will burnish naturally from your pocket. No conditioning needed for the first two years.",
-    inStock: true,
   },
   {
     slug: "meridian-folio",
@@ -275,7 +268,6 @@ export const products: Product[] = [
       "Lies flat when open, stands when full",
     ],
     care: "Smooth calf shows care: wipe weekly, condition sparingly, keep dry.",
-    inStock: true,
   },
   {
     slug: "sonnet-crossbody",
@@ -302,7 +294,6 @@ export const products: Product[] = [
       "Suede-lined phone pocket, scratch-safe",
     ],
     care: "Condition twice a year. The saddle tan will deepen two shades in its first year of sun.",
-    inStock: true,
   },
   {
     slug: "gharana-duffel",
@@ -328,7 +319,6 @@ export const products: Product[] = [
       "Numbered edition — twelve made each season",
     ],
     care: "An annual wax is all it asks. Everything else it handles itself.",
-    inStock: false,
   },
   {
     slug: "quill-belt",
@@ -356,7 +346,6 @@ export const products: Product[] = [
       "Edges burnished with beeswax and canvas",
     ],
     care: "Nothing required. It will outlast the trousers.",
-    inStock: true,
   },
 ];
 

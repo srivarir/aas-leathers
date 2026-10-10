@@ -22,9 +22,9 @@ function validateAddress(addr) {
 }
 
 /**
- * Prices a cart against the live catalogue WITHOUT touching stock. Used to
- * compute the amount for a payment before the customer pays. Throws ApiError
- * if anything is unavailable.
+ * Prices a cart against the live catalogue. Used to compute the amount for a
+ * payment before the customer pays. Throws ApiError if a piece has since been
+ * withdrawn from sale.
  */
 export async function priceCart(items) {
   if (!Array.isArray(items) || items.length === 0) {
@@ -41,14 +41,8 @@ export async function priceCart(items) {
       throw new ApiError(400, "Quantities must be between 1 and 9.");
     }
     const product = await Product.findOne({ slug, status: "published" });
-    if (!product || product.stock < qty) {
-      const name = product?.name ?? "That piece";
-      throw new ApiError(
-        409,
-        product && product.stock > 0
-          ? `Only ${product.stock} of ${name} remain — please adjust the quantity.`
-          : `${name} has sold out. Remove it from the cart to continue.`,
-      );
+    if (!product) {
+      throw new ApiError(409, "That piece is no longer available. Remove it from the cart to continue.");
     }
     subtotal += product.price * qty;
   }
@@ -56,10 +50,9 @@ export async function priceCart(items) {
 }
 
 /**
- * Creates an order: prices the cart from the DB, atomically decrements stock
- * (never oversells), persists the order, and sends the confirmation email.
- * On any unavailable item it rolls back the stock it already reserved and
- * throws — so a partial order is never created.
+ * Creates an order: prices the cart from the DB, persists the order and sends
+ * the confirmation email. Every piece is made to order, so there is no stock
+ * to reserve and nothing to oversell.
  */
 export async function createOrder({ user, items, shippingAddress, payment }) {
   // Every order belongs to an account. Orders placed against a bare email
@@ -88,25 +81,9 @@ export async function createOrder({ user, items, shippingAddress, payment }) {
       throw new ApiError(400, "Quantities must be between 1 and 9.");
     }
 
-    const product = await Product.findOneAndUpdate(
-      { slug, status: "published", stock: { $gte: qty } },
-      { $inc: { stock: -qty } },
-      { new: true },
-    );
+    const product = await Product.findOne({ slug, status: "published" });
     if (!product) {
-      await Promise.all(
-        orderItems.map((oi) =>
-          Product.updateOne({ _id: oi.product }, { $inc: { stock: oi.qty } }),
-        ),
-      );
-      const existing = await Product.findOne({ slug });
-      const name = existing?.name ?? "That piece";
-      throw new ApiError(
-        409,
-        existing && existing.status === "published" && existing.stock > 0
-          ? `Only ${existing.stock} of ${name} remain — please adjust the quantity.`
-          : `${name} has sold out. Remove it from the cart to continue.`,
-      );
+      throw new ApiError(400, "That piece is no longer available.");
     }
 
     // The colour is the customer's choice, so it is validated against what

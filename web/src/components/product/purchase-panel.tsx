@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckIcon, HeartIcon, MinusIcon, PlusIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { apiFetch } from "@/lib/api";
 import { useCart, useUI, useWishlist } from "@/lib/store";
 import type { Product } from "@/lib/types";
 
@@ -13,20 +12,10 @@ export function PurchasePanel({ product }: { product: Product }) {
   const [color, setColor] = useState(colors[0]?.name);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
-  // The page is statically built, so availability starts from build time and
-  // is corrected against the live catalog on mount. If the API is offline we
-  // quietly keep the build-time value — the server re-checks at checkout.
-  const [inStock, setInStock] = useState(product.inStock);
   const add = useCart((s) => s.add);
   const setCartOpen = useUI((s) => s.setCartOpen);
   const { slugs, toggle } = useWishlist();
   const wished = slugs.includes(product.slug);
-
-  useEffect(() => {
-    apiFetch<{ product: { inStock: boolean } }>(`/products/${product.slug}`)
-      .then((d) => setInStock(d.product.inStock))
-      .catch(() => {});
-  }, [product.slug]);
 
   const handleAdd = () => {
     add(
@@ -97,7 +86,7 @@ export function PurchasePanel({ product }: { product: Product }) {
 
         <Button
           onClick={handleAdd}
-          disabled={!inStock || added}
+          disabled={added}
           className="min-w-56 flex-1"
         >
           <AnimatePresence mode="wait" initial={false}>
@@ -120,7 +109,7 @@ export function PurchasePanel({ product }: { product: Product }) {
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.3 }}
               >
-                {inStock ? "Add to Cart" : "Sold out this season"}
+                Add to Cart
               </motion.span>
             )}
           </AnimatePresence>
@@ -140,12 +129,10 @@ export function PurchasePanel({ product }: { product: Product }) {
         </button>
       </div>
 
-      {!inStock && (
-        <p className="mt-4 text-xs leading-relaxed text-muted">
-          Twelve are made each season. Write to us and we will reserve one
-          from the next bench.
-        </p>
-      )}
+      <p className="mt-4 text-xs leading-relaxed text-muted">
+        Each piece is made to order on the bench. Allow two to three weeks
+        before it ships.
+      </p>
     </div>
   );
 }

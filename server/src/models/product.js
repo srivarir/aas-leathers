@@ -26,7 +26,6 @@ const productSchema = new mongoose.Schema(
     story: String,
     details: { type: [String], default: [] },
     care: String,
-    stock: { type: Number, default: 0, min: 0 },
     featured: { type: Boolean, default: false },
     status: {
       type: String,
@@ -56,7 +55,8 @@ productSchema.methods.toClientJSON = function () {
     story: this.story,
     details: this.details,
     care: this.care,
-    inStock: this.stock > 0,
+    // Everything is made to order, so nothing is ever out of stock.
+    inStock: true,
     featured: this.featured,
   };
 };

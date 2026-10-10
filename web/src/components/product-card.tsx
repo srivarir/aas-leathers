@@ -40,11 +40,6 @@ export function ProductCard({
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             className="object-cover opacity-0 transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04] group-hover:opacity-100"
           />
-          {!product.inStock && (
-            <span className="eyebrow absolute left-4 top-4 bg-espresso/85 px-3 py-1.5 text-[10px] text-bone">
-              This season sold out
-            </span>
-          )}
         </div>
         {/* Stacked, not side by side: in a two-up grid a long name and the
             price cannot share a line without pushing past the card. */}

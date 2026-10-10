@@ -3,7 +3,6 @@ import rateLimit from "express-rate-limit";
 import { ApiError, asyncHandler } from "../utils/api-error.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { Order, ORDER_STATUSES } from "../models/order.js";
-import { Product } from "../models/product.js";
 import { streamInvoice } from "../services/invoice.js";
 import { createOrder, toClientOrder } from "../services/order-service.js";
 
@@ -108,9 +107,8 @@ router.get(
 
 /**
  * Permanently removes an order — for clearing test orders, not for cancelling
- * a real one (that is a status change, which keeps the record). The stock the
- * order consumed is returned to the pieces it held, because an order that
- * never happened never took anything off the shelf.
+ * a real one (that is a status change, which keeps the record). Nothing is
+ * returned to inventory because pieces are made to order, not held in stock.
  */
 router.delete(
   "/:id",
@@ -120,13 +118,8 @@ router.delete(
     const order = await Order.findById(req.params.id).catch(() => null);
     if (!order) throw new ApiError(404, "Order not found.");
 
-    await Promise.all(
-      order.items.map((item) =>
-        Product.updateOne({ _id: item.product }, { $inc: { stock: item.qty } }),
-      ),
-    );
     await order.deleteOne();
-    res.json({ ok: true, restocked: order.items.length });
+    res.json({ ok: true });
   }),
 );
 

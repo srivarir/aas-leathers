@@ -17,7 +17,7 @@ function EditProduct() {
       return;
     }
     apiFetch<{ product: ProductDraft & { collection: string } }>(
-      `/products/office/item/${slug}`,
+      `/products/admin/item/${slug}`,
     )
       .then((d) => setDraft({ ...d.product, slug }))
       .catch((e) => setError(e.message));

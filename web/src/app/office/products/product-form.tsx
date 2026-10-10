@@ -14,7 +14,6 @@ export interface ProductDraft {
   price: number | "";
   colors: ProductColor[];
   collection: string;
-  stock: number | "";
   status: "draft" | "published" | "archived";
   featured: boolean;
   images: string[];
@@ -33,7 +32,6 @@ export const emptyDraft: ProductDraft = {
   price: "",
   colors: [],
   collection: "everyday",
-  stock: 0,
   status: "draft",
   featured: false,
   images: [],
@@ -110,7 +108,6 @@ export function ProductForm({
         .map((c) => ({ name: c.name.trim(), hex: c.hex.trim() }))
         .filter((c) => c.name && c.hex),
       collectionSlug: form.collection,
-      stock: Number(form.stock) || 0,
       status: form.status,
       featured: form.featured,
       images: form.images.map((s) => s.trim()).filter(Boolean),
@@ -184,19 +181,6 @@ export function ProductForm({
             />
           </div>
           <div>
-            <Label htmlFor="stock">Stock quantity</Label>
-            <input
-              id="stock"
-              type="number"
-              min={0}
-              value={form.stock}
-              onChange={(e) =>
-                set("stock", e.target.value === "" ? "" : Number(e.target.value))
-              }
-              className={inputClass}
-            />
-          </div>
-          <div>
             <Label htmlFor="collection">Collection</Label>
             <select
               id="collection"
@@ -223,8 +207,8 @@ export function ProductForm({
         <legend className="eyebrow text-foreground">Finishes</legend>
         <p className="text-xs leading-relaxed text-muted">
           The colours this piece can be ordered in. The customer picks one on
-          the product page and it is recorded on the order. Stock is held on the
-          piece, not per colour. Leave empty if it comes one way only.
+          the product page and it is recorded on the order. Leave empty if it
+          comes one way only.
         </p>
         {form.colors.length > 0 && (
           <ul className="space-y-3">

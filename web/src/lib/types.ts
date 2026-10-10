@@ -19,7 +19,6 @@ export interface Product {
   story: string;
   details: string[];
   care: string;
-  inStock: boolean;
   featured?: boolean;
 }
 

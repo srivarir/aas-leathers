@@ -11,7 +11,6 @@ interface AdminProduct {
   name: string;
   price: number;
   colors?: { name: string; hex: string }[];
-  stock: number;
   status: "draft" | "published" | "archived";
   image?: string;
 }
@@ -25,11 +24,10 @@ const statusStyle: Record<AdminProduct["status"], string> = {
 export default function AdminProducts() {
   const [products, setProducts] = useState<AdminProduct[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [stockDrafts, setStockDrafts] = useState<Record<string, string>>({});
   const [busySlug, setBusySlug] = useState<string | null>(null);
 
   const reload = useCallback(() => {
-    return apiFetch<{ products: AdminProduct[] }>("/products/office/list")
+    return apiFetch<{ products: AdminProduct[] }>("/products/admin/list")
       .then((d) => setProducts(d.products))
       .catch((e) => setError(e.message));
   }, []);
@@ -51,20 +49,12 @@ export default function AdminProducts() {
     }
   };
 
-  const saveStock = (p: AdminProduct) => {
-    const draft = stockDrafts[p.slug];
-    const stock = Number(draft);
-    if (draft === undefined || draft === "" || !Number.isInteger(stock) || stock < 0) return;
-    if (stock !== p.stock) patch(p.slug, { stock });
-    setStockDrafts((d) => ({ ...d, [p.slug]: "" }));
-  };
-
   const duplicate = async (p: AdminProduct) => {
     setBusySlug(p.slug);
     setError(null);
     try {
       const { product } = await apiFetch<{ product: Record<string, unknown> }>(
-        `/products/office/item/${p.slug}`,
+        `/products/admin/item/${p.slug}`,
       );
       await apiFetch("/products", {
         method: "POST",
@@ -126,7 +116,7 @@ export default function AdminProducts() {
           <table className="w-full min-w-[860px] text-sm">
             <thead>
               <tr className="border-b border-line text-left">
-                {["Piece", "Colours", "Price", "Stock", "Visibility", "Actions"].map((h) => (
+                {["Piece", "Colours", "Price", "Visibility", "Actions"].map((h) => (
                   <th key={h} className="eyebrow py-3 pr-6 font-medium text-muted">
                     {h}
                   </th>
@@ -168,34 +158,6 @@ export default function AdminProducts() {
                     </span>
                   </td>
                   <td className="py-4 pr-6 tabular-nums">{formatINR(p.price)}</td>
-                  <td className="py-4 pr-6">
-                    <span className="flex items-center gap-2">
-                      <label className="sr-only" htmlFor={`stock-${p.slug}`}>
-                        Stock for {p.name}
-                      </label>
-                      <input
-                        id={`stock-${p.slug}`}
-                        type="number"
-                        min={0}
-                        placeholder={String(p.stock)}
-                        value={stockDrafts[p.slug] ?? ""}
-                        onChange={(e) =>
-                          setStockDrafts((d) => ({ ...d, [p.slug]: e.target.value }))
-                        }
-                        onKeyDown={(e) => e.key === "Enter" && saveStock(p)}
-                        className={`w-20 border border-line bg-surface px-3 py-2 tabular-nums focus:border-foreground focus:outline-none ${
-                          p.stock === 0 ? "text-cognac-deep" : ""
-                        }`}
-                      />
-                      <button
-                        className="link-underline eyebrow cursor-pointer text-muted disabled:opacity-40"
-                        disabled={busySlug === p.slug || !(stockDrafts[p.slug] ?? "").length}
-                        onClick={() => saveStock(p)}
-                      >
-                        Save
-                      </button>
-                    </span>
-                  </td>
                   <td className="py-4 pr-6">
                     <button
                       className={`link-underline eyebrow cursor-pointer disabled:opacity-40 ${statusStyle[p.status]}`}
@@ -245,7 +207,7 @@ export default function AdminProducts() {
         draft you can publish when ready. <strong className="font-medium text-foreground">Edit</strong> opens
         the full editor. <strong className="font-medium text-foreground">Duplicate</strong> copies a piece as
         a new draft. <strong className="font-medium text-foreground">Delete</strong> removes it permanently —
-        past orders keep their own record. Stock and Visibility can be changed inline.
+        past orders keep their own record. Visibility can be changed inline.
       </p>
     </div>
   );

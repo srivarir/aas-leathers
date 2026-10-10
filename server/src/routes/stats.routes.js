@@ -27,10 +27,9 @@ router.get(
   requireAuth,
   requireRole(...STAFF),
   asyncHandler(async (_req, res) => {
-    const [orders, customerCount, lowStock] = await Promise.all([
+    const [orders, customerCount] = await Promise.all([
       Order.find().sort({ createdAt: -1 }).limit(500),
       User.countDocuments({ role: "customer" }),
-      Product.find({ status: "published", stock: { $lte: 3 } }).sort({ stock: 1 }),
     ]);
 
     const live = orders.filter((o) => !DEAD_STATUSES.includes(o.status));
@@ -47,11 +46,6 @@ router.get(
       customerCount,
       averageOrderValue: live.length ? Math.round(revenue / live.length) : 0,
       statusCounts,
-      lowStock: lowStock.map((p) => ({
-        slug: p.slug,
-        name: p.name,
-        stock: p.stock,
-      })),
       recentOrders: orders.slice(0, 6).map((o) => ({
         id: o._id,
         number: o.number,
@@ -89,7 +83,7 @@ router.get(
 
     const [published, awaiting, inTransit, recent, sold, buyers, accounts] =
       await Promise.all([
-        Product.find({ status: "published" }).select("slug name price stock"),
+        Product.find({ status: "published" }).select("slug name price"),
         Order.find({ status: { $in: AWAITING } })
           .select("number createdAt")
           .sort({ createdAt: 1 })
@@ -132,29 +126,13 @@ router.get(
 
     const soldBySlug = new Map(sold.map((s) => [s._id, s]));
 
-    // Pieces on sale that have never been bought, and the money sitting in
-    // them. Ones with no stock are excluded: nothing is tied up in an empty
-    // shelf, and the sold-out count above already covers them.
+    // Pieces on sale that nobody has ever ordered. Nothing is "tied up" in
+    // them — they are made to order — but a piece that never sells is still
+    // worth knowing about.
     const neverSold = published
-      .filter((p) => !soldBySlug.has(p.slug) && p.stock > 0)
-      .map((p) => ({
-        slug: p.slug,
-        name: p.name,
-        stock: p.stock,
-        tiedUp: p.stock * p.price,
-      }))
-      .sort((a, b) => b.tiedUp - a.tiedUp);
-
-    // Pieces that sell and are about to run out — the reorder list.
-    const runningOut = published
-      .filter((p) => p.stock <= 3 && soldBySlug.has(p.slug))
-      .map((p) => ({
-        slug: p.slug,
-        name: p.name,
-        stock: p.stock,
-        unitsSold: soldBySlug.get(p.slug).units,
-      }))
-      .sort((a, b) => a.stock - b.stock);
+      .filter((p) => !soldBySlug.has(p.slug))
+      .map((p) => ({ slug: p.slug, name: p.name, price: p.price }))
+      .sort((a, b) => b.price - a.price);
 
     const repeat = buyers.filter((b) => b.n > 1).length;
 
@@ -166,8 +144,6 @@ router.get(
           : null,
         oldestWaitingNumber: awaiting.length ? awaiting[0].number : null,
         inTransit,
-        outOfStock: published.filter((p) => p.stock === 0).length,
-        runningOut,
       },
       trade: {
         revenue: revenueNow,
@@ -185,7 +161,6 @@ router.get(
       })),
       neverSold: neverSold.slice(0, 8),
       neverSoldTotal: neverSold.length,
-      capitalIdle: neverSold.reduce((t, p) => t + p.tiedUp, 0),
       people: {
         accounts,
         buyers: buyers.length,

@@ -22,7 +22,7 @@ export default function AdminCollections() {
 
   const reload = useCallback(
     () =>
-      apiFetch<{ collections: AdminCollection[] }>("/collections/office/list")
+      apiFetch<{ collections: AdminCollection[] }>("/collections/admin/list")
         .then((d) => setCollections(d.collections))
         .catch((e) => setError(e.message)),
     [],

@@ -8,11 +8,9 @@ import { formatINR } from "@/lib/format";
 interface Piece {
   slug: string;
   name: string;
+  price?: number;
   units?: number;
   revenue?: number;
-  stock?: number;
-  tiedUp?: number;
-  unitsSold?: number;
 }
 
 interface Insights {
@@ -21,8 +19,6 @@ interface Insights {
     oldestWaitingDays: number | null;
     oldestWaitingNumber: string | null;
     inTransit: number;
-    outOfStock: number;
-    runningOut: Piece[];
   };
   trade: {
     revenue: number;
@@ -35,7 +31,6 @@ interface Insights {
   earning: Piece[];
   neverSold: Piece[];
   neverSoldTotal: number;
-  capitalIdle: number;
   people: { accounts: number; buyers: number; repeat: number; neverBought: number };
 }
 
@@ -109,7 +104,7 @@ export default function OfficeInsights() {
       {/* What the workshop owes people right now. */}
       <section>
         <h2 className="font-display text-2xl tracking-tight">On the bench today</h2>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <Card label="Waiting to go out" value={String(waiting)}>
             {waiting === 0 ? (
               <span className="text-xs text-muted">nothing owed</span>
@@ -123,29 +118,7 @@ export default function OfficeInsights() {
             )}
           </Card>
           <Card label="With the courier" value={String(attention.inTransit)} />
-          <Card label="Sold out" value={String(attention.outOfStock)}>
-            <span className="text-xs text-muted">published, nothing left</span>
-          </Card>
-          <Card label="Needs making" value={String(attention.runningOut.length)}>
-            <span className="text-xs text-muted">selling, 3 or fewer left</span>
-          </Card>
         </div>
-        {attention.runningOut.length > 0 && (
-          <ul className="mt-6 space-y-2 text-sm">
-            {attention.runningOut.map((p) => (
-              <li key={p.slug} className="flex flex-wrap items-baseline gap-x-3">
-                <Link
-                  href={`/office/products/edit?slug=${p.slug}`}
-                  className="font-display link-underline"
-                >
-                  {p.name}
-                </Link>
-                <span className="text-cognac-deep">{p.stock} left</span>
-                <span className="text-xs text-muted">{p.unitsSold} sold so far</span>
-              </li>
-            ))}
-          </ul>
-        )}
       </section>
 
       <Section
@@ -202,7 +175,7 @@ export default function OfficeInsights() {
             ? "Every published piece has sold at least once."
             : `${d.neverSoldTotal} published ${
                 d.neverSoldTotal === 1 ? "piece has" : "pieces have"
-              } never sold — ${formatINR(d.capitalIdle)} of leather sitting still.`
+              } never been ordered.`
         }
       >
         {d.neverSold.length > 0 && (
@@ -218,8 +191,8 @@ export default function OfficeInsights() {
                 >
                   {p.name}
                 </Link>
-                <span className="text-xs text-muted">
-                  {p.stock} in stock &middot; {formatINR(p.tiedUp ?? 0)} tied up
+                <span className="text-xs tabular-nums text-muted">
+                  {formatINR(p.price ?? 0)}
                 </span>
               </li>
             ))}

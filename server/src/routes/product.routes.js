@@ -32,7 +32,7 @@ router.get(
   }),
 );
 
-// Full catalog including drafts/archived and raw stock — staff only.
+// Full catalog including drafts and archived pieces — staff only.
 // Registered before "/:slug" so "admin" is never read as a product slug.
 router.get(
   "/admin/list",
@@ -46,7 +46,6 @@ router.get(
         name: p.name,
         price: p.price,
         colors: p.colors?.map((c) => ({ name: c.name, hex: c.hex })) ?? [],
-        stock: p.stock,
         status: p.status,
         image: p.images[0],
       })),
@@ -86,7 +85,7 @@ router.get(
 const EDITABLE_FIELDS = [
   "name", "tagline", "price", "collectionSlug", "images", "colors",
   "leather", "hardware", "lining", "dimensions", "story", "details",
-  "care", "stock", "featured", "status",
+  "care", "featured", "status",
 ];
 
 const slugify = (text) =>
@@ -200,7 +199,6 @@ function adminProductJSON(p) {
     story: p.story,
     details: p.details,
     care: p.care,
-    stock: p.stock,
     featured: p.featured,
     status: p.status,
   };

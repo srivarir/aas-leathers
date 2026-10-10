@@ -12,7 +12,6 @@ interface Stats {
   customerCount: number;
   averageOrderValue: number;
   statusCounts: Record<string, number>;
-  lowStock: { slug: string; name: string; stock: number }[];
   recentOrders: {
     id: string;
     number: string;
@@ -83,27 +82,6 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        <div>
-          <p className="eyebrow text-muted">Low stock</p>
-          {stats.lowStock.length === 0 ? (
-            <p className="mt-4 text-sm text-muted">Every shelf is comfortably stocked.</p>
-          ) : (
-            <ul className="mt-4 divide-y divide-line border-y border-line">
-              {stats.lowStock.map((p) => (
-                <li key={p.slug} className="flex items-baseline justify-between py-4">
-                  <Link href="/office/products" className="link-underline text-sm">
-                    {p.name}
-                  </Link>
-                  <span
-                    className={`eyebrow ${p.stock === 0 ? "text-cognac-deep" : "text-muted"}`}
-                  >
-                    {p.stock === 0 ? "Out of stock" : `${p.stock} left`}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
       </div>
 
       <div className="mt-16">

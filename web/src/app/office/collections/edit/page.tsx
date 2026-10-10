@@ -23,7 +23,7 @@ function EditCollection() {
     }
     // There is no single-collection admin endpoint; the list is small enough
     // that picking the one we need out of it is cheaper than adding a route.
-    apiFetch<{ collections: AdminCollection[] }>("/collections/office/list")
+    apiFetch<{ collections: AdminCollection[] }>("/collections/admin/list")
       .then((d) => {
         const found = d.collections.find((c) => c.slug === slug);
         if (!found) throw new Error("That collection no longer exists.");
