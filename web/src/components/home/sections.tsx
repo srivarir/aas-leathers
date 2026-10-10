@@ -7,9 +7,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { Reveal, RevealLines } from "@/components/motion";
 import { ArrowRightIcon } from "@/components/icons";
 import { ButtonLink } from "@/components/ui/button";
-import { ProductCard } from "@/components/product-card";
-import { IMAGES, journalPosts } from "@/lib/data";
-import { useCatalog } from "@/lib/use-catalog";
+import { IMAGES } from "@/lib/data";
 
 /* ————— Workshop, with a slow parallax ————— */
 export function Craftsmanship() {
@@ -63,40 +61,6 @@ export function Craftsmanship() {
   );
 }
 
-/* ————— Featured pieces ————— */
-export function FeaturedCollection() {
-  const catalog = useCatalog();
-  // Featured pieces if any are flagged; otherwise the first four, so the
-  // section is never empty.
-  // Featured pieces lead, then the rest fill the grid — a home page for a
-  // shop should show stock, not a curated handful.
-  const featured = catalog
-    .slice()
-    .sort((a, b) => Number(!!b.featured) - Number(!!a.featured))
-    .slice(0, 8);
-  return (
-    <section className="mx-auto max-w-[1500px] px-6 py-20 lg:px-12 lg:py-28">
-      <div className="mb-10 flex flex-wrap items-end justify-between gap-6 border-b border-line pb-5">
-        <Reveal>
-          <h2 className="font-display text-[clamp(1.6rem,2.6vw,2.4rem)] leading-tight tracking-tight">
-            The pieces
-          </h2>
-        </Reveal>
-        <Reveal delay={0.15}>
-          <Link href="/shop" className="link-underline eyebrow inline-flex items-center gap-3">
-            Shop all <ArrowRightIcon width={16} height={16} />
-          </Link>
-        </Reveal>
-      </div>
-      <div className="grid grid-cols-2 gap-x-5 gap-y-12 sm:gap-x-8 lg:grid-cols-4">
-        {featured.map((product, i) => (
-          <ProductCard key={product.slug} product={product} delay={i * 0.08} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
 /* ————— Lifestyle interlude — full bleed, one line ————— */
 export function Lifestyle() {
   const ref = useRef<HTMLElement>(null);
@@ -143,7 +107,7 @@ export function ClosingInvitation() {
           <div className="mt-12 flex flex-wrap justify-center gap-4">
             <ButtonLink href="/shop">Shop the Pieces</ButtonLink>
             <ButtonLink href="/craftsmanship" variant="outline">
-              See How They're Made
+              See How They&apos;re Made
             </ButtonLink>
           </div>
         </Reveal>
