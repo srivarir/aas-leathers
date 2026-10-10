@@ -5,7 +5,7 @@ import { ProductGallery } from "@/components/product/gallery";
 import { PurchasePanel } from "@/components/product/purchase-panel";
 import { ProductCard } from "@/components/product-card";
 import { Reveal, RevealLines } from "@/components/motion";
-import { categoryLabels, relatedProducts } from "@/lib/data";
+import { relatedProducts } from "@/lib/data";
 import {
   fetchCatalogServer,
   fetchCollectionServer,
@@ -59,7 +59,7 @@ export default async function ProductPage({
         <div className="lg:col-span-5 lg:pt-8">
           <Reveal>
             <p className="eyebrow text-muted">
-              {collection?.name} · {categoryLabels[product.category]}
+              {collection?.name}
             </p>
             <h1 className="font-display mt-4 text-[clamp(2.2rem,4vw,3.6rem)] leading-[1.08] tracking-tight">
               {product.name}

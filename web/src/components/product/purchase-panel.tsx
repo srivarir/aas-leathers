@@ -9,6 +9,8 @@ import { useCart, useUI, useWishlist } from "@/lib/store";
 import type { Product } from "@/lib/types";
 
 export function PurchasePanel({ product }: { product: Product }) {
+  const colors = product.colors ?? [];
+  const [color, setColor] = useState(colors[0]?.name);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   // The page is statically built, so availability starts from build time and
@@ -33,6 +35,7 @@ export function PurchasePanel({ product }: { product: Product }) {
         name: product.name,
         price: product.price,
         image: product.images[0],
+        color,
       },
       qty,
     );
@@ -45,6 +48,32 @@ export function PurchasePanel({ product }: { product: Product }) {
 
   return (
     <div className="mt-10">
+      {colors.length > 0 && (
+        <fieldset className="mb-8">
+          <legend className="eyebrow text-muted">
+            Finish{color ? <span className="ml-2 text-foreground">{color}</span> : null}
+          </legend>
+          <div className="mt-4 flex flex-wrap gap-3">
+            {colors.map((c) => {
+              const active = c.name === color;
+              return (
+                <button
+                  key={c.name}
+                  type="button"
+                  onClick={() => setColor(c.name)}
+                  aria-pressed={active}
+                  aria-label={c.name}
+                  title={c.name}
+                  className={`h-9 w-9 cursor-pointer rounded-full ring-offset-2 ring-offset-background transition-all duration-200 ${
+                    active ? "ring-2 ring-foreground" : "ring-1 ring-line hover:ring-foreground/40"
+                  }`}
+                  style={{ backgroundColor: c.hex }}
+                />
+              );
+            })}
+          </div>
+        </fieldset>
+      )}
       <div className="flex flex-wrap items-stretch gap-4">
         <div className="flex items-center border border-line">
           <button

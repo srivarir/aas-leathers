@@ -92,7 +92,7 @@ export default function CheckoutPage() {
   // The order payload — items and address only. The email and the account the
   // order belongs to are taken from the session by the server.
   const buildPayload = () => ({
-    items: items.map((i) => ({ slug: i.slug, qty: i.qty })),
+    items: items.map((i) => ({ slug: i.slug, qty: i.qty, color: i.color })),
     shippingAddress: {
       name: form.name,
       line1: form.address,
@@ -412,7 +412,9 @@ export default function CheckoutPage() {
                     </span>
                     <span className="flex-1">
                       <span className="font-display block leading-tight">{name}</span>
-                      <span className="text-xs text-muted">Qty {item.qty}</span>
+                      <span className="text-xs text-muted">
+                        {item.color ? `${item.color} · ` : ""}Qty {item.qty}
+                      </span>
                     </span>
                     <span className="text-sm tabular-nums">
                       {formatINR(price * item.qty)}

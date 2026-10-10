@@ -3,24 +3,16 @@ import {
   ClosingInvitation,
   Craftsmanship,
   FeaturedCollection,
-  JournalPreview,
-  LeatherStory,
   Lifestyle,
-  Statement,
-  Testimonial,
 } from "@/components/home/sections";
 
 export default function Home() {
   return (
     <>
       <Hero />
-      <Statement />
-      <Craftsmanship />
       <FeaturedCollection />
-      <LeatherStory />
+      <Craftsmanship />
       <Lifestyle />
-      <Testimonial />
-      <JournalPreview />
       <ClosingInvitation />
     </>
   );

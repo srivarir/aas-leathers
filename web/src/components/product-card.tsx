@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { HeartIcon } from "@/components/icons";
 import { Reveal } from "@/components/motion";
-import { categoryLabels } from "@/lib/data";
 import { formatINR } from "@/lib/format";
 import { useWishlist } from "@/lib/store";
 import type { Product } from "@/lib/types";
@@ -47,15 +46,26 @@ export function ProductCard({
             </span>
           )}
         </div>
-        <div className="mt-5 flex items-baseline justify-between gap-4">
-          <h3 className="font-display text-xl leading-snug">{product.name}</h3>
-          <p className="shrink-0 text-sm tabular-nums text-foreground/80">
+        {/* Stacked, not side by side: in a two-up grid a long name and the
+            price cannot share a line without pushing past the card. */}
+        <div className="mt-4">
+          <h3 className="font-display text-lg leading-snug sm:text-xl">{product.name}</h3>
+          <p className="mt-1 text-sm tabular-nums text-foreground/80">
             {formatINR(product.price)}
           </p>
         </div>
-        <p className="mt-1 text-xs uppercase tracking-[0.18em] text-muted">
-          {categoryLabels[product.category]}
-        </p>
+        {product.colors && product.colors.length > 0 && (
+          <span className="mt-2 flex items-center gap-1.5" aria-label={`Available in ${product.colors.map((c) => c.name).join(", ")}`}>
+            {product.colors.slice(0, 5).map((c) => (
+              <span
+                key={c.name}
+                title={c.name}
+                className="block h-2.5 w-2.5 rounded-full ring-1 ring-line"
+                style={{ backgroundColor: c.hex }}
+              />
+            ))}
+          </span>
+        )}
       </Link>
       <button
         className={`absolute right-3 top-3 cursor-pointer rounded-full bg-surface/80 p-2.5 backdrop-blur-sm transition-all duration-300 hover:scale-110 ${

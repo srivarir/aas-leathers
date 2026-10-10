@@ -21,7 +21,7 @@ const STATUSES = [
 interface AdminOrder {
   id: string;
   number: string;
-  items: { name: string; qty: number }[];
+  items: { name: string; qty: number; color?: string }[];
   amounts: { total: number };
   shippingAddress: { name: string; city: string };
   status: string;
@@ -40,7 +40,7 @@ export default function AdminOrders() {
   }, []);
 
   const remove = async (o: AdminOrder) => {
-    const pieces = o.items.map((i) => `${i.name} x${i.qty}`).join(", ");
+    const pieces = o.items.map((i) => `${i.name}${i.color ? " (" + i.color + ")" : ""} x${i.qty}`).join(", ");
     if (
       !window.confirm(
         `Permanently delete order ${o.number}?
@@ -113,7 +113,7 @@ ${pieces}
                 <span className="block text-xs text-muted">{o.shippingAddress.city}</span>
               </td>
               <td className="py-4 pr-6 text-muted">
-                {o.items.map((i) => `${i.name} ×${i.qty}`).join(", ")}
+                {o.items.map((i) => `${i.name}${i.color ? " · " + i.color : ""} ×${i.qty}`).join(", ")}
               </td>
               <td className="py-4 pr-6 tabular-nums">{formatINR(o.amounts.total)}</td>
               <td className="py-4 pr-6 text-muted">

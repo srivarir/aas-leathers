@@ -10,7 +10,7 @@ interface AdminProduct {
   slug: string;
   name: string;
   price: number;
-  category: string;
+  colors?: { name: string; hex: string }[];
   stock: number;
   status: "draft" | "published" | "archived";
   image?: string;
@@ -126,7 +126,7 @@ export default function AdminProducts() {
           <table className="w-full min-w-[860px] text-sm">
             <thead>
               <tr className="border-b border-line text-left">
-                {["Piece", "Category", "Price", "Stock", "Visibility", "Actions"].map((h) => (
+                {["Piece", "Colours", "Price", "Stock", "Visibility", "Actions"].map((h) => (
                   <th key={h} className="eyebrow py-3 pr-6 font-medium text-muted">
                     {h}
                   </th>
@@ -151,7 +151,22 @@ export default function AdminProducts() {
                       </Link>
                     </span>
                   </td>
-                  <td className="py-4 pr-6 text-muted">{p.category}</td>
+                  <td className="py-4 pr-6">
+                    <span className="flex items-center gap-1.5">
+                      {(p.colors ?? []).length === 0 ? (
+                        <span className="text-xs text-muted">—</span>
+                      ) : (
+                        p.colors!.map((c) => (
+                          <span
+                            key={c.name}
+                            title={c.name}
+                            className="block h-3 w-3 rounded-full ring-1 ring-line"
+                            style={{ backgroundColor: c.hex }}
+                          />
+                        ))
+                      )}
+                    </span>
+                  </td>
                   <td className="py-4 pr-6 tabular-nums">{formatINR(p.price)}</td>
                   <td className="py-4 pr-6">
                     <span className="flex items-center gap-2">

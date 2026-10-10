@@ -63,7 +63,11 @@ export const products: Product[] = [
     name: "The Madras Tote",
     tagline: "A carryall that ages into an heirloom",
     price: 24500,
-    category: "bags",
+    colors: [
+      { name: "Cognac", hex: "#8a5a32" },
+      { name: "Espresso", hex: "#3b2a1d" },
+      { name: "Natural", hex: "#c9a77c" },
+    ],
     collection: "heritage",
     images: [IMAGES.heroBag, IMAGES.grainMacro, IMAGES.toteQuiet],
     leather: "Full-grain, vegetable-tanned cowhide from Tamil Nadu tanneries",
@@ -87,7 +91,10 @@ export const products: Product[] = [
     name: "The Cathedral Briefcase",
     tagline: "Structured, unhurried, permanent",
     price: 38000,
-    category: "briefcases",
+    colors: [
+      { name: "Espresso", hex: "#3b2a1d" },
+      { name: "Oxblood", hex: "#5c2a2a" },
+    ],
     collection: "heritage",
     images: [IMAGES.satchel, IMAGES.bagDesk, IMAGES.grainMacro],
     leather: "Bridle leather, drum-dyed espresso",
@@ -111,7 +118,10 @@ export const products: Product[] = [
     name: "The Deccan Weekender",
     tagline: "Three days, one bag, no compromises",
     price: 42500,
-    category: "travel",
+    colors: [
+      { name: "Cognac", hex: "#8a5a32" },
+      { name: "Olive", hex: "#4a4a32" },
+    ],
     collection: "voyage",
     images: [IMAGES.duffel, IMAGES.bagTravel, IMAGES.hideCraft],
     leather: "Full-grain cowhide, hot-stuffed with tallows",
@@ -135,7 +145,11 @@ export const products: Product[] = [
     name: "The Clerk Satchel",
     tagline: "The everyday bag, perfected slowly",
     price: 19800,
-    category: "bags",
+    colors: [
+      { name: "Cognac", hex: "#8a5a32" },
+      { name: "Espresso", hex: "#3b2a1d" },
+      { name: "Natural", hex: "#c9a77c" },
+    ],
     collection: "everyday",
     images: [IMAGES.crossbody, IMAGES.bagStreet, IMAGES.grainMacro],
     leather: "Pull-up leather, hand-rubbed tan",
@@ -159,7 +173,11 @@ export const products: Product[] = [
     name: "The Verandah Handbag",
     tagline: "Small in the hand, generous inside",
     price: 27500,
-    category: "bags",
+    colors: [
+      { name: "Cognac", hex: "#8a5a32" },
+      { name: "Espresso", hex: "#3b2a1d" },
+      { name: "Natural", hex: "#c9a77c" },
+    ],
     collection: "heritage",
     images: [IMAGES.handbagStudio, IMAGES.handbagWarm, IMAGES.toteQuiet],
     leather: "Milled full-grain calf, cognac",
@@ -182,7 +200,10 @@ export const products: Product[] = [
     name: "The Cartographer Backpack",
     tagline: "For the long way to work",
     price: 32000,
-    category: "travel",
+    colors: [
+      { name: "Cognac", hex: "#8a5a32" },
+      { name: "Olive", hex: "#4a4a32" },
+    ],
     collection: "voyage",
     images: [IMAGES.backpack, IMAGES.bagField, IMAGES.hideCraft],
     leather: "Oiled full-grain cowhide, field brown",
@@ -205,7 +226,12 @@ export const products: Product[] = [
     name: "The Ledger Wallet",
     tagline: "Eight cards, a decade of use",
     price: 6500,
-    category: "small-goods",
+    colors: [
+      { name: "Natural", hex: "#c9a77c" },
+      { name: "Cognac", hex: "#8a5a32" },
+      { name: "Espresso", hex: "#3b2a1d" },
+      { name: "Oxblood", hex: "#5c2a2a" },
+    ],
     collection: "atelier",
     images: [IMAGES.wallet, IMAGES.grainMacro],
     leather: "Bridle leather offcuts from the Cathedral",
@@ -228,7 +254,12 @@ export const products: Product[] = [
     name: "The Meridian Folio",
     tagline: "Paper deserves better than plastic",
     price: 12500,
-    category: "small-goods",
+    colors: [
+      { name: "Natural", hex: "#c9a77c" },
+      { name: "Cognac", hex: "#8a5a32" },
+      { name: "Espresso", hex: "#3b2a1d" },
+      { name: "Oxblood", hex: "#5c2a2a" },
+    ],
     collection: "atelier",
     images: [IMAGES.bagLinen, IMAGES.workshopTools],
     leather: "Smooth calf, ink black",
@@ -251,7 +282,11 @@ export const products: Product[] = [
     name: "The Sonnet Crossbody",
     tagline: "Everything you need, nothing you don't",
     price: 16800,
-    category: "bags",
+    colors: [
+      { name: "Cognac", hex: "#8a5a32" },
+      { name: "Espresso", hex: "#3b2a1d" },
+      { name: "Natural", hex: "#c9a77c" },
+    ],
     collection: "everyday",
     images: [IMAGES.bagStand, IMAGES.bagStreet],
     leather: "Milled calf, saddle tan",
@@ -274,7 +309,10 @@ export const products: Product[] = [
     name: "The Gharana Duffel",
     tagline: "The grand tour, shouldered",
     price: 48000,
-    category: "travel",
+    colors: [
+      { name: "Cognac", hex: "#8a5a32" },
+      { name: "Olive", hex: "#4a4a32" },
+    ],
     collection: "voyage",
     images: [IMAGES.bagTravel, IMAGES.duffel, IMAGES.hideCraft],
     leather: "Hot-stuffed full-grain, dark umber",
@@ -297,7 +335,12 @@ export const products: Product[] = [
     name: "The Quill Belt",
     tagline: "One piece of bridle, one brass buckle",
     price: 5800,
-    category: "small-goods",
+    colors: [
+      { name: "Natural", hex: "#c9a77c" },
+      { name: "Cognac", hex: "#8a5a32" },
+      { name: "Espresso", hex: "#3b2a1d" },
+      { name: "Oxblood", hex: "#5c2a2a" },
+    ],
     collection: "atelier",
     images: [IMAGES.hideCraft, IMAGES.workshopTools],
     leather: "Bridle butt, 4 mm, espresso or tan",
@@ -387,15 +430,7 @@ export const relatedProducts = (
 ) =>
   catalog
     .filter(
-      (p) =>
-        p.slug !== product.slug &&
-        (p.collection === product.collection || p.category === product.category),
+      (p) => p.slug !== product.slug && p.collection === product.collection,
     )
     .slice(0, count);
 
-export const categoryLabels: Record<string, string> = {
-  bags: "Bags",
-  briefcases: "Briefcases",
-  travel: "Travel",
-  "small-goods": "Small Goods",
-};

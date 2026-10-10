@@ -8,7 +8,7 @@ import { CloseIcon, MinusIcon, PlusIcon } from "@/components/icons";
 import { ButtonLink } from "@/components/ui/button";
 import { getProduct } from "@/lib/data";
 import { formatINR } from "@/lib/format";
-import { cartSubtotal, useCart, useUI } from "@/lib/store";
+import { cartSubtotal, lineKey, useCart, useUI } from "@/lib/store";
 
 export function CartDrawer() {
   const { cartOpen, setCartOpen } = useUI();
@@ -71,9 +71,9 @@ export function CartDrawer() {
                     const name = item.name ?? product?.name ?? "Item";
                     const price = item.price ?? product?.price ?? 0;
                     const image = item.image ?? product?.images[0];
-                    const subtitle = product?.leather?.split(",")[0];
+                    const subtitle = item.color ?? product?.leather?.split(",")[0];
                     return (
-                      <li key={item.slug} className="flex gap-5 py-6">
+                      <li key={lineKey(item)} className="flex gap-5 py-6">
                         <Link
                           href={`/products/${item.slug}`}
                           onClick={() => setCartOpen(false)}
@@ -108,7 +108,7 @@ export function CartDrawer() {
                               <button
                                 className="cursor-pointer p-2 transition-opacity hover:opacity-60"
                                 aria-label={`Decrease quantity of ${name}`}
-                                onClick={() => setQty(item.slug, item.qty - 1)}
+                                onClick={() => setQty(lineKey(item), item.qty - 1)}
                               >
                                 <MinusIcon width={14} height={14} />
                               </button>
@@ -116,14 +116,14 @@ export function CartDrawer() {
                               <button
                                 className="cursor-pointer p-2 transition-opacity hover:opacity-60"
                                 aria-label={`Increase quantity of ${name}`}
-                                onClick={() => setQty(item.slug, item.qty + 1)}
+                                onClick={() => setQty(lineKey(item), item.qty + 1)}
                               >
                                 <PlusIcon width={14} height={14} />
                               </button>
                             </div>
                             <button
                               className="link-underline cursor-pointer text-xs text-muted"
-                              onClick={() => remove(item.slug)}
+                              onClick={() => remove(lineKey(item))}
                             >
                               Remove
                             </button>

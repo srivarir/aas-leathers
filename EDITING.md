@@ -15,7 +15,7 @@ Sign in at **`/office`**.
 
 | What | Where |
 |---|---|
-| Product name, price, description, stock, photos | **Inventory** → Edit |
+| Product name, price, description, stock, photos, **colours** | **Inventory** → Edit |
 | Collection name, description, photo, order | **Collections** → Edit |
 | Order status, deleting test orders | **Orders** |
 
@@ -53,13 +53,9 @@ Everything on the home page is in two files.
 | Hero: small line above the title | `components/home/hero.tsx` | `Full-grain · Vegetable-tanned` |
 | Hero: the big headline (two lines) | `components/home/hero.tsx` | `Leather that keeps` / `your years.` |
 | Hero: button | `components/home/hero.tsx` | `Explore the Collections` |
-| "The house position" opening statement | `components/home/sections.tsx` | `The house position` |
+| Products shown on the home page | `components/home/sections.tsx` | `The pieces` |
 | Craftsmanship block | `components/home/sections.tsx` | `Two needles,` |
-| Heritage Collection block | `components/home/sections.tsx` | `Carried first,` |
-| Material / dark block | `components/home/sections.tsx` | `Tanned by bark.` |
 | Travel block | `components/home/sections.tsx` | `Good luggage doesn't retire.` |
-| Customer quote | `components/home/sections.tsx` | `From a letter we keep` |
-| Journal teaser | `components/home/sections.tsx` | `Notes on leather,` |
 | Closing block | `components/home/sections.tsx` | `Begin with one piece.` |
 
 Headlines are written as `lines={["First line,", "second line."]}` — each string is one line on screen. Keep the quotes and commas.
@@ -72,6 +68,7 @@ Headlines are written as `lines={["First line,", "second line."]}` — each stri
 | Craftsmanship | `app/craftsmanship/page.tsx` |
 | Contact details | `app/contact/page.tsx` |
 | FAQ questions and answers | `app/faq/page.tsx` — each entry is `q:` and `a:` |
+| Shop page | `app/shop/shop-client.tsx` |
 | Journal articles | `lib/data.ts` — the `journalPosts` list |
 | Terms | `app/terms/page.tsx` |
 | Privacy Policy | `app/privacy-policy/page.tsx` |

@@ -109,11 +109,22 @@ export async function createOrder({ user, items, shippingAddress, payment }) {
       );
     }
 
+    // The colour is the customer's choice, so it is validated against what
+    // the piece is actually offered in rather than taken on trust.
+    const wanted = item?.color ? String(item.color) : null;
+    const color = wanted
+      ? (product.colors ?? []).find((c) => c.name === wanted)?.name
+      : undefined;
+    if (wanted && !color) {
+      throw new ApiError(400, `${product.name} isn't offered in ${wanted}.`);
+    }
+
     orderItems.push({
       product: product._id,
       slug: product.slug,
       name: product.name,
       image: product.images[0],
+      color,
       unitPrice: product.price,
       qty,
     });
@@ -147,6 +158,7 @@ export function toClientOrder(order) {
       slug: i.slug,
       name: i.name,
       image: i.image,
+      color: i.color,
       unitPrice: i.unitPrice,
       qty: i.qty,
     })),

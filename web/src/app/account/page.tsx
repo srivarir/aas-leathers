@@ -14,6 +14,7 @@ import { formatINR } from "@/lib/format";
 interface OrderItem {
   slug: string;
   name: string;
+  color?: string;
   image?: string;
   unitPrice: number;
   qty: number;
@@ -142,7 +143,9 @@ export default function AccountPage() {
                           )}
                           <span className="flex-1 text-sm">
                             {item.name}
-                            <span className="text-muted"> · Qty {item.qty}</span>
+                            <span className="text-muted">
+                              {item.color ? ` · ${item.color}` : ""} · Qty {item.qty}
+                            </span>
                           </span>
                           <span className="text-sm tabular-nums">
                             {formatINR(item.unitPrice * item.qty)}

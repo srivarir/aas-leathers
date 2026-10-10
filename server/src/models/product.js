@@ -1,6 +1,14 @@
 import mongoose from "mongoose";
 
-export const CATEGORIES = ["bags", "briefcases", "travel", "small-goods"];
+/** A colour a piece can be ordered in. Stock is held on the piece, not per
+  * colour — the workshop dyes to order rather than keeping parallel runs. */
+const colorSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    hex: { type: String, required: true, trim: true, lowercase: true },
+  },
+  { _id: false },
+);
 
 const productSchema = new mongoose.Schema(
   {
@@ -8,9 +16,9 @@ const productSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     tagline: { type: String, trim: true },
     price: { type: Number, required: true, min: 0 },
-    category: { type: String, enum: CATEGORIES, required: true, index: true },
     collectionSlug: { type: String, required: true, index: true },
     images: { type: [String], default: [] },
+    colors: { type: [colorSchema], default: [] },
     leather: String,
     hardware: String,
     lining: String,
@@ -38,9 +46,9 @@ productSchema.methods.toClientJSON = function () {
     name: this.name,
     tagline: this.tagline,
     price: this.price,
-    category: this.category,
     collection: this.collectionSlug,
     images: this.images,
+    colors: this.colors.map((c) => ({ name: c.name, hex: c.hex })),
     leather: this.leather,
     hardware: this.hardware,
     lining: this.lining,

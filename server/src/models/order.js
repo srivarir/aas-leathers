@@ -23,6 +23,7 @@ const orderItemSchema = new mongoose.Schema(
     // Snapshots — an order's history must not change when the catalog does.
     name: { type: String, required: true },
     image: String,
+    color: String,
     unitPrice: { type: Number, required: true, min: 0 },
     qty: { type: Number, required: true, min: 1, max: 9 },
   },

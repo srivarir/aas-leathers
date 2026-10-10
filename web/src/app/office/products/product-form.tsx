@@ -4,15 +4,15 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { apiFetch, apiUpload } from "@/lib/api";
-import { categoryLabels } from "@/lib/data";
 import { useCollections } from "@/lib/use-catalog";
+import type { ProductColor } from "@/lib/types";
 
 export interface ProductDraft {
   slug?: string;
   name: string;
   tagline: string;
   price: number | "";
-  category: string;
+  colors: ProductColor[];
   collection: string;
   stock: number | "";
   status: "draft" | "published" | "archived";
@@ -31,7 +31,7 @@ export const emptyDraft: ProductDraft = {
   name: "",
   tagline: "",
   price: "",
-  category: "bags",
+  colors: [],
   collection: "everyday",
   stock: 0,
   status: "draft",
@@ -105,7 +105,10 @@ export function ProductForm({
       name: form.name.trim(),
       tagline: form.tagline.trim(),
       price: Number(form.price) || 0,
-      category: form.category,
+      // Blank rows are dropped rather than saved as nameless swatches.
+      colors: form.colors
+        .map((c) => ({ name: c.name.trim(), hex: c.hex.trim() }))
+        .filter((c) => c.name && c.hex),
       collectionSlug: form.collection,
       stock: Number(form.stock) || 0,
       status: form.status,
@@ -194,21 +197,6 @@ export function ProductForm({
             />
           </div>
           <div>
-            <Label htmlFor="category">Category</Label>
-            <select
-              id="category"
-              value={form.category}
-              onChange={(e) => set("category", e.target.value)}
-              className={`${inputClass} cursor-pointer`}
-            >
-              {Object.entries(categoryLabels).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
             <Label htmlFor="collection">Collection</Label>
             <select
               id="collection"
@@ -229,6 +217,66 @@ export function ProductForm({
             </select>
           </div>
         </div>
+      </fieldset>
+
+      <fieldset className="space-y-4">
+        <legend className="eyebrow text-foreground">Finishes</legend>
+        <p className="text-xs leading-relaxed text-muted">
+          The colours this piece can be ordered in. The customer picks one on
+          the product page and it is recorded on the order. Stock is held on the
+          piece, not per colour. Leave empty if it comes one way only.
+        </p>
+        {form.colors.length > 0 && (
+          <ul className="space-y-3">
+            {form.colors.map((c, i) => (
+              <li key={i} className="flex flex-wrap items-center gap-3">
+                <input
+                  type="color"
+                  aria-label={`Colour ${i + 1} swatch`}
+                  value={c.hex || "#8a5a32"}
+                  onChange={(e) =>
+                    set(
+                      "colors",
+                      form.colors.map((x, j) =>
+                        j === i ? { ...x, hex: e.target.value } : x,
+                      ),
+                    )
+                  }
+                  className="h-10 w-14 cursor-pointer border border-line bg-surface"
+                />
+                <input
+                  aria-label={`Colour ${i + 1} name`}
+                  placeholder="Cognac"
+                  value={c.name}
+                  onChange={(e) =>
+                    set(
+                      "colors",
+                      form.colors.map((x, j) =>
+                        j === i ? { ...x, name: e.target.value } : x,
+                      ),
+                    )
+                  }
+                  className="flex-1 border border-line bg-surface px-3 py-2.5 text-sm focus:border-foreground focus:outline-none"
+                />
+                <span className="w-24 font-mono text-xs text-muted">{c.hex}</span>
+                <button
+                  type="button"
+                  className="link-underline eyebrow cursor-pointer text-cognac-deep"
+                  onClick={() => set("colors", form.colors.filter((_, j) => j !== i))}
+                >
+                  Remove
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <button
+          type="button"
+          className="link-underline eyebrow cursor-pointer text-muted"
+          onClick={() => set("colors", [...form.colors, { name: "", hex: "#8a5a32" }])}
+        >
+          + Add a finish
+        </button>
       </fieldset>
 
       {/* Media */}

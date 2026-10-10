@@ -8,9 +8,6 @@ const columns: { title: string; links: { href: Route; label: string }[] }[] = [
     links: [
       { href: "/shop", label: "All Pieces" },
       { href: "/collections", label: "Collections" },
-      { href: "/shop?category=bags", label: "Bags" },
-      { href: "/shop?category=travel", label: "Travel" },
-      { href: "/shop?category=small-goods", label: "Small Goods" },
     ],
   },
   {

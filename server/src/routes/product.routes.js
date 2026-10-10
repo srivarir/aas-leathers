@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { ApiError, asyncHandler } from "../utils/api-error.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
-import { CATEGORIES, Product } from "../models/product.js";
+import { Product } from "../models/product.js";
 
 const router = Router();
 
@@ -15,17 +15,12 @@ const SORTS = {
 router.get(
   "/",
   asyncHandler(async (req, res) => {
-    const { category, collection, search, sort = "featured" } = req.query;
+    const { collection, search, sort = "featured" } = req.query;
 
     // Coerce every filter to a string — query-string parsing can otherwise
     // yield objects/arrays (e.g. ?collection[$ne]=x), which would reach the
     // database as query operators (NoSQL injection).
     const query = { status: "published" };
-    if (category) {
-      const c = String(category);
-      if (!CATEGORIES.includes(c)) throw new ApiError(400, "Unknown category.");
-      query.category = c;
-    }
     if (collection) query.collectionSlug = String(collection);
     if (search) query.$text = { $search: String(search) };
 
@@ -50,7 +45,7 @@ router.get(
         slug: p.slug,
         name: p.name,
         price: p.price,
-        category: p.category,
+        colors: p.colors?.map((c) => ({ name: c.name, hex: c.hex })) ?? [],
         stock: p.stock,
         status: p.status,
         image: p.images[0],
@@ -89,7 +84,7 @@ router.get(
 // Only these fields may be written through the API — identity (_id) and
 // timestamps can never be overwritten.
 const EDITABLE_FIELDS = [
-  "name", "tagline", "price", "category", "collectionSlug", "images",
+  "name", "tagline", "price", "collectionSlug", "images", "colors",
   "leather", "hardware", "lining", "dimensions", "story", "details",
   "care", "stock", "featured", "status",
 ];
@@ -126,10 +121,6 @@ router.post(
     if (!Number.isFinite(price) || price < 0) {
       throw new ApiError(400, "A product needs a valid price.");
     }
-    if (!CATEGORIES.includes(body.category)) {
-      throw new ApiError(400, "Choose a valid category.");
-    }
-
     const doc = {};
     for (const field of EDITABLE_FIELDS) {
       if (field in body) doc[field] = body[field];
@@ -199,9 +190,9 @@ function adminProductJSON(p) {
     name: p.name,
     tagline: p.tagline,
     price: p.price,
-    category: p.category,
     collection: p.collectionSlug,
     images: p.images,
+    colors: p.colors?.map((c) => ({ name: c.name, hex: c.hex })) ?? [],
     leather: p.leather,
     hardware: p.hardware,
     lining: p.lining,

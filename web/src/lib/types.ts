@@ -1,13 +1,17 @@
-export type Category = "bags" | "briefcases" | "travel" | "small-goods";
+export interface ProductColor {
+  name: string;
+  hex: string;
+}
 
 export interface Product {
   slug: string;
   name: string;
   tagline: string;
   price: number; // INR
-  category: Category;
   collection: string; // collection slug
   images: string[];
+  /** The finishes a piece can be ordered in. May be empty. */
+  colors?: ProductColor[];
   leather: string;
   hardware: string;
   lining: string;
@@ -40,6 +44,8 @@ export interface JournalPost {
 export interface CartItem {
   slug: string;
   qty: number;
+  /** Chosen finish. Undefined for pieces offered in one colour only. */
+  color?: string;
   // Snapshot taken when added, so the cart shows correct details for any
   // product — including ones added after the site was built. Optional for
   // backward compatibility with carts saved before this field existed.

@@ -6,7 +6,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { EASE } from "@/components/motion";
 import { CloseIcon, SearchIcon } from "@/components/icons";
-import { categoryLabels } from "@/lib/data";
 import { formatINR } from "@/lib/format";
 import { useUI } from "@/lib/store";
 import { useCatalog } from "@/lib/use-catalog";
@@ -44,7 +43,7 @@ export function SearchOverlay() {
     if (!q) return [];
     return catalog
       .filter((p) =>
-        [p.name, p.tagline, p.category, p.leather]
+        [p.name, p.tagline, p.leather, ...(p.colors ?? []).map((c) => c.name)]
           .some((field) => (field ?? "").toLowerCase().includes(q)),
       )
       .slice(0, 6);
@@ -146,7 +145,7 @@ export function SearchOverlay() {
                       <span className="flex-1">
                         <span className="font-display block text-xl">{p.name}</span>
                         <span className="mt-1 block text-xs text-muted">
-                          {categoryLabels[p.category]}
+                          {(p.colors ?? []).map((c) => c.name).join(' · ') || p.leather}
                         </span>
                       </span>
                       <span className="text-sm tabular-nums">{formatINR(p.price)}</span>

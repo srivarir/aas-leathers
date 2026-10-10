@@ -11,13 +11,21 @@ export interface CartAddInput {
   name: string;
   price: number;
   image?: string;
+  color?: string;
 }
+
+/**
+ * A cart line is a piece *in a finish* — the same bag in cognac and in
+ * espresso are two lines, so this, not the slug, is what identifies one.
+ */
+export const lineKey = (item: { slug: string; color?: string }) =>
+  `${item.slug}::${item.color ?? ""}`;
 
 interface CartState {
   items: CartItem[];
   add: (product: CartAddInput, qty?: number) => void;
-  remove: (slug: string) => void;
-  setQty: (slug: string, qty: number) => void;
+  remove: (key: string) => void;
+  setQty: (key: string, qty: number) => void;
   clear: () => void;
 }
 
@@ -27,13 +35,11 @@ export const useCart = create<CartState>()(
       items: [],
       add: (product, qty = 1) =>
         set((s) => {
-          const existing = s.items.find((i) => i.slug === product.slug);
-          if (existing) {
+          const key = lineKey(product);
+          if (s.items.some((i) => lineKey(i) === key)) {
             return {
               items: s.items.map((i) =>
-                i.slug === product.slug
-                  ? { ...i, qty: Math.min(i.qty + qty, 9) }
-                  : i,
+                lineKey(i) === key ? { ...i, qty: Math.min(i.qty + qty, 9) } : i,
               ),
             };
           }
@@ -46,19 +52,20 @@ export const useCart = create<CartState>()(
                 name: product.name,
                 price: product.price,
                 image: product.image,
+                color: product.color,
               },
             ],
           };
         }),
-      remove: (slug) =>
-        set((s) => ({ items: s.items.filter((i) => i.slug !== slug) })),
-      setQty: (slug, qty) =>
+      remove: (key) =>
+        set((s) => ({ items: s.items.filter((i) => lineKey(i) !== key) })),
+      setQty: (key, qty) =>
         set((s) => ({
           items:
             qty < 1
-              ? s.items.filter((i) => i.slug !== slug)
+              ? s.items.filter((i) => lineKey(i) !== key)
               : s.items.map((i) =>
-                  i.slug === slug ? { ...i, qty: Math.min(qty, 9) } : i,
+                  lineKey(i) === key ? { ...i, qty: Math.min(qty, 9) } : i,
                 ),
         })),
       clear: () => set({ items: [] }),
