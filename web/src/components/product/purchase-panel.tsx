@@ -6,10 +6,13 @@ import { CheckIcon, HeartIcon, MinusIcon, PlusIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { useCart, useUI, useWishlist } from "@/lib/store";
 import type { Product } from "@/lib/types";
+import { useProductColor } from "@/components/product/color-context";
 
 export function PurchasePanel({ product }: { product: Product }) {
-  const colors = product.colors ?? [];
-  const [color, setColor] = useState(colors[0]?.name);
+  const ctx = useProductColor();
+  const colors = ctx?.colors ?? product.colors ?? [];
+  const color = ctx?.selected?.name;
+  const setColor = (name: string) => ctx?.select(name);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const add = useCart((s) => s.add);
@@ -23,7 +26,7 @@ export function PurchasePanel({ product }: { product: Product }) {
         slug: product.slug,
         name: product.name,
         price: product.price,
-        image: product.images[0],
+        image: ctx?.images[0] ?? product.images[0],
         color,
       },
       qty,

@@ -5,15 +5,26 @@ import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { EASE } from "@/components/motion";
 import { CloseIcon } from "@/components/icons";
+import { useProductColor } from "@/components/product/color-context";
 
 export function ProductGallery({
-  images,
+  images: fallback,
   name,
 }: {
   images: string[];
   name: string;
 }) {
+  // Follows the finish picked in the buy panel; `images` is the fallback for
+  // pieces with no colours, or when rendered outside a product page.
+  const ctx = useProductColor();
+  const images = ctx?.images.length ? ctx.images : fallback;
   const [active, setActive] = useState(0);
+
+  // A finish with fewer photographs than the last one must not leave the
+  // viewer on an index that no longer exists.
+  useEffect(() => {
+    setActive(0);
+  }, [ctx?.selected?.name]);
   const [zoomed, setZoomed] = useState(false);
 
   const next = useCallback(

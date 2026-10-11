@@ -1,6 +1,8 @@
 export interface ProductColor {
   name: string;
   hex: string;
+  /** Photographs of this finish. Empty means fall back to the piece's own. */
+  images?: string[];
 }
 
 export interface Product {

@@ -1,11 +1,15 @@
 import mongoose from "mongoose";
 
-/** A colour a piece can be ordered in. Stock is held on the piece, not per
-  * colour — the workshop dyes to order rather than keeping parallel runs. */
+/**
+ * A colour a piece can be ordered in, with its own photographs. When a colour
+ * has none, the piece's main images are shown instead, so a shop that has not
+ * photographed every finish still works.
+ */
 const colorSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
     hex: { type: String, required: true, trim: true, lowercase: true },
+    images: { type: [String], default: [] },
   },
   { _id: false },
 );
@@ -47,7 +51,11 @@ productSchema.methods.toClientJSON = function () {
     price: this.price,
     collection: this.collectionSlug,
     images: this.images,
-    colors: this.colors.map((c) => ({ name: c.name, hex: c.hex })),
+    colors: this.colors.map((c) => ({
+      name: c.name,
+      hex: c.hex,
+      images: c.images ?? [],
+    })),
     leather: this.leather,
     hardware: this.hardware,
     lining: this.lining,

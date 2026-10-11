@@ -12,6 +12,7 @@ import {
   fetchProductServer,
 } from "@/lib/server-catalog";
 import { formatINR } from "@/lib/format";
+import { ProductColorProvider } from "@/components/product/color-context";
 
 export async function generateMetadata({
   params,
@@ -51,6 +52,10 @@ export default async function ProductPage({
 
   return (
     <div className="pb-32 pt-28 lg:pt-32">
+      <ProductColorProvider
+        colors={product.colors ?? []}
+        fallbackImages={product.images}
+      >
       <div className="mx-auto grid max-w-[1500px] gap-12 px-6 lg:grid-cols-11 lg:gap-20 lg:px-12">
         <div className="lg:col-span-6">
           <ProductGallery images={product.images} name={product.name} />
@@ -116,6 +121,7 @@ export default async function ProductPage({
           </Reveal>
         </div>
       </div>
+      </ProductColorProvider>
 
       {/* The material, up close */}
       <section className="mx-auto mt-28 max-w-[1500px] px-6 lg:mt-40 lg:px-12">

@@ -15,7 +15,7 @@ Sign in at **`/office`**.
 
 | What | Where |
 |---|---|
-| Product name, price, description, stock, photos, **colours** | **Inventory** → Edit |
+| Product name, price, description, photos, **finishes** | **Inventory** → Edit |
 | Collection name, description, photo, order | **Collections** → Edit |
 | Order status, deleting test orders | **Orders** |
 
@@ -94,6 +94,11 @@ The four legal pages share one layout: each is a list of `heading:` and `paragra
 ### Product and collection photos
 
 In the office. Do not touch code for these.
+
+A product has its **main photographs**, and each **finish** can have its own
+set. Choosing a finish on the product page swaps the gallery to that finish's
+photographs; a finish with none shows the main ones instead. So you only need
+to photograph the colours you actually have shots of.
 
 ### The hero photo
 

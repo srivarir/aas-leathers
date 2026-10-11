@@ -80,6 +80,26 @@ export function ProductForm({
   const removeImage = (index: number) =>
     setForm((f) => ({ ...f, images: f.images.filter((_, i) => i !== index) }));
 
+  /** Uploads into one finish's own set of photographs. */
+  const onColorFiles = async (index: number, files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploadError(null);
+    setUploading(true);
+    try {
+      const urls = await apiUpload(Array.from(files));
+      setForm((f) => ({
+        ...f,
+        colors: f.colors.map((c, j) =>
+          j === index ? { ...c, images: [...(c.images ?? []), ...urls] } : c,
+        ),
+      }));
+    } catch (e) {
+      setUploadError(e instanceof Error ? e.message : "Upload failed.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const onFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     setUploadError(null);
@@ -105,7 +125,11 @@ export function ProductForm({
       price: Number(form.price) || 0,
       // Blank rows are dropped rather than saved as nameless swatches.
       colors: form.colors
-        .map((c) => ({ name: c.name.trim(), hex: c.hex.trim() }))
+        .map((c) => ({
+          name: c.name.trim(),
+          hex: c.hex.trim(),
+          images: (c.images ?? []).map((u) => u.trim()).filter(Boolean),
+        }))
         .filter((c) => c.name && c.hex),
       collectionSlug: form.collection,
       status: form.status,
@@ -207,13 +231,14 @@ export function ProductForm({
         <legend className="eyebrow text-foreground">Finishes</legend>
         <p className="text-xs leading-relaxed text-muted">
           The colours this piece can be ordered in. The customer picks one on
-          the product page and it is recorded on the order. Leave empty if it
-          comes one way only.
+          the product page and it is recorded on the order. Give a finish its
+          own photographs and they replace the main ones while it is selected.
+          Leave empty if the piece comes one way only.
         </p>
         {form.colors.length > 0 && (
           <ul className="space-y-3">
             {form.colors.map((c, i) => (
-              <li key={i} className="flex flex-wrap items-center gap-3">
+              <li key={i} className="flex flex-wrap items-center gap-3 border-b border-line pb-6 last:border-0">
                 <input
                   type="color"
                   aria-label={`Colour ${i + 1} swatch`}
@@ -250,6 +275,52 @@ export function ProductForm({
                 >
                   Remove
                 </button>
+
+                <div className="w-full pl-[4.25rem]">
+                  {(c.images ?? []).length > 0 && (
+                    <div className="mb-3 flex flex-wrap gap-2">
+                      {(c.images ?? []).map((src, k) => (
+                        <div
+                          key={src + k}
+                          className="group relative h-20 w-16 overflow-hidden border border-line bg-bone-soft"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={src} alt="" className="h-full w-full object-cover" />
+                          <button
+                            type="button"
+                            aria-label="Remove this photograph"
+                            className="absolute inset-0 hidden items-center justify-center bg-espresso/70 text-[10px] uppercase tracking-wider text-bone group-hover:flex"
+                            onClick={() =>
+                              set(
+                                "colors",
+                                form.colors.map((x, j) =>
+                                  j === i
+                                    ? { ...x, images: (x.images ?? []).filter((_, m) => m !== k) }
+                                    : x,
+                                ),
+                              )
+                            }
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    aria-label={`Photographs of ${c.name || "this finish"}`}
+                    onChange={(e) => onColorFiles(i, e.target.files)}
+                    className="text-xs text-muted file:mr-3 file:cursor-pointer file:border file:border-line file:bg-surface file:px-3 file:py-1.5 file:text-[10px] file:uppercase file:tracking-[0.18em]"
+                  />
+                  <p className="mt-2 text-xs text-muted">
+                    {(c.images ?? []).length === 0
+                      ? "No photographs yet — this finish will show the piece's main ones."
+                      : `${(c.images ?? []).length} photograph${(c.images ?? []).length === 1 ? "" : "s"} shown when this finish is chosen.`}
+                  </p>
+                </div>
               </li>
             ))}
           </ul>
@@ -257,7 +328,9 @@ export function ProductForm({
         <button
           type="button"
           className="link-underline eyebrow cursor-pointer text-muted"
-          onClick={() => set("colors", [...form.colors, { name: "", hex: "#8a5a32" }])}
+          onClick={() =>
+            set("colors", [...form.colors, { name: "", hex: "#8a5a32", images: [] }])
+          }
         >
           + Add a finish
         </button>
